@@ -1,0 +1,13 @@
+{
+  "case": "D",
+  "worlds": 4,
+  "world_seed0": 0,
+  "seeds": 3,
+  "H": 32,
+  "steps": 12000,
+  "cond_pool": 256,
+  "logit_floor": -25.0,
+  "floor_samples": null,
+  "device": "cuda",
+  "out": "results/oracle-gap"
+}

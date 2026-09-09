@@ -1,0 +1,272 @@
+{
+ "dead_share": {
+  "A|1": 0.0,
+  "A|4": 0.0,
+  "B|1": 0.8187,
+  "B|4": 0.9191,
+  "C|1": 0.0248,
+  "C|4": 0.0248,
+  "D|1": 0.0,
+  "D|4": 0.0001
+ },
+ "five_arm_table": {
+  "A|1|contrastive": {
+   "frac_modes": 1.0,
+   "l1": 0.137,
+   "n": 12
+  },
+  "A|1|mix": {
+   "frac_modes": 1.0,
+   "l1": 0.121,
+   "n": 12
+  },
+  "A|1|onpolicy": {
+   "frac_modes": 1.0,
+   "l1": 0.111,
+   "n": 12
+  },
+  "A|1|replay": {
+   "frac_modes": 1.0,
+   "l1": 0.117,
+   "n": 12
+  },
+  "A|1|teacher": {
+   "frac_modes": 1.0,
+   "l1": 0.132,
+   "n": 12
+  },
+  "A|4|contrastive": {
+   "frac_modes": 0.723,
+   "l1": 0.148,
+   "n": 12
+  },
+  "A|4|mix": {
+   "frac_modes": 1.0,
+   "l1": 0.17,
+   "n": 12
+  },
+  "A|4|onpolicy": {
+   "frac_modes": 0.81,
+   "l1": 0.138,
+   "n": 12
+  },
+  "A|4|replay": {
+   "frac_modes": 0.757,
+   "l1": 0.139,
+   "n": 12
+  },
+  "A|4|teacher": {
+   "frac_modes": 1.0,
+   "l1": 0.187,
+   "n": 12
+  },
+  "B|1|contrastive": {
+   "frac_modes": 0.91,
+   "l1": 0.392,
+   "n": 12
+  },
+  "B|1|mix": {
+   "frac_modes": 0.999,
+   "l1": 0.617,
+   "n": 12
+  },
+  "B|1|onpolicy": {
+   "frac_modes": 0.845,
+   "l1": 0.55,
+   "n": 12
+  },
+  "B|1|replay": {
+   "frac_modes": 0.953,
+   "l1": 0.38,
+   "n": 12
+  },
+  "B|1|teacher": {
+   "frac_modes": 1.0,
+   "l1": 0.621,
+   "n": 12
+  },
+  "B|4|contrastive": {
+   "frac_modes": 0.352,
+   "l1": 0.223,
+   "n": 12
+  },
+  "B|4|mix": {
+   "frac_modes": 0.997,
+   "l1": 0.505,
+   "n": 12
+  },
+  "B|4|onpolicy": {
+   "frac_modes": 0.174,
+   "l1": 1.033,
+   "n": 12
+  },
+  "B|4|replay": {
+   "frac_modes": 0.385,
+   "l1": 0.291,
+   "n": 12
+  },
+  "B|4|teacher": {
+   "frac_modes": 0.987,
+   "l1": 0.475,
+   "n": 12
+  },
+  "C|1|contrastive": {
+   "frac_modes": 0.996,
+   "l1": 0.323,
+   "n": 12
+  },
+  "C|1|mix": {
+   "frac_modes": 1.0,
+   "l1": 0.44,
+   "n": 12
+  },
+  "C|1|onpolicy": {
+   "frac_modes": 0.999,
+   "l1": 0.309,
+   "n": 12
+  },
+  "C|1|replay": {
+   "frac_modes": 1.0,
+   "l1": 0.273,
+   "n": 12
+  },
+  "C|1|teacher": {
+   "frac_modes": 1.0,
+   "l1": 0.477,
+   "n": 12
+  },
+  "C|4|contrastive": {
+   "frac_modes": 0.671,
+   "l1": 0.209,
+   "n": 12
+  },
+  "C|4|mix": {
+   "frac_modes": 0.999,
+   "l1": 0.274,
+   "n": 12
+  },
+  "C|4|onpolicy": {
+   "frac_modes": 0.767,
+   "l1": 0.207,
+   "n": 12
+  },
+  "C|4|replay": {
+   "frac_modes": 0.726,
+   "l1": 0.19,
+   "n": 12
+  },
+  "C|4|teacher": {
+   "frac_modes": 0.999,
+   "l1": 0.331,
+   "n": 12
+  },
+  "D|1|contrastive": {
+   "frac_modes": 0.999,
+   "l1": 0.158,
+   "n": 12
+  },
+  "D|1|mix": {
+   "frac_modes": 1.0,
+   "l1": 0.138,
+   "n": 12
+  },
+  "D|1|onpolicy": {
+   "frac_modes": 1.0,
+   "l1": 0.132,
+   "n": 12
+  },
+  "D|1|replay": {
+   "frac_modes": 0.999,
+   "l1": 0.139,
+   "n": 12
+  },
+  "D|1|teacher": {
+   "frac_modes": 1.0,
+   "l1": 0.158,
+   "n": 12
+  },
+  "D|4|contrastive": {
+   "frac_modes": 0.514,
+   "l1": 0.103,
+   "n": 3
+  },
+  "D|4|mix": {
+   "frac_modes": 0.998,
+   "l1": 0.136,
+   "n": 3
+  },
+  "D|4|onpolicy": {
+   "frac_modes": 0.619,
+   "l1": 0.096,
+   "n": 3
+  },
+  "D|4|replay": {
+   "frac_modes": 0.53,
+   "l1": 0.098,
+   "n": 3
+  },
+  "D|4|teacher": {
+   "frac_modes": 0.999,
+   "l1": 0.16,
+   "n": 3
+  }
+ },
+ "grid_l1": {
+  "A|1": {
+   "contrastive": 0.149,
+   "mix": 0.124,
+   "on-policy": 0.112,
+   "replay": 0.121,
+   "teacher": 0.132
+  },
+  "A|4": {
+   "contrastive": 0.131,
+   "mix": 0.146,
+   "on-policy": 0.113,
+   "replay": 0.132,
+   "teacher": 0.152
+  },
+  "B|1": {
+   "contrastive": 0.484,
+   "mix": 0.601,
+   "on-policy": 0.531,
+   "replay": 0.352,
+   "teacher": 0.577
+  },
+  "B|4": {
+   "contrastive": 0.306,
+   "mix": 0.402,
+   "on-policy": 2.0,
+   "replay": 0.238,
+   "teacher": 0.42
+  },
+  "C|1": {
+   "contrastive": 0.376,
+   "mix": 0.43,
+   "on-policy": 0.3,
+   "replay": 0.283,
+   "teacher": 0.433
+  },
+  "C|4": {
+   "contrastive": 0.184,
+   "mix": 0.251,
+   "on-policy": 0.148,
+   "replay": 0.158,
+   "teacher": 0.292
+  },
+  "D|1": {
+   "contrastive": 0.14,
+   "mix": 0.135,
+   "on-policy": 0.116,
+   "replay": 0.136,
+   "teacher": 0.149
+  },
+  "D|4": {
+   "contrastive": 0.104,
+   "mix": 0.14,
+   "on-policy": 0.105,
+   "replay": 0.095,
+   "teacher": 0.155
+  }
+ }
+}

@@ -1,0 +1,14 @@
+{
+  "case": "C",
+  "worlds": 4,
+  "world_seed0": 0,
+  "seeds": 3,
+  "H": 64,
+  "steps": 12000,
+  "floor_samples": null,
+  "device": "cuda",
+  "cond_pool": 256,
+  "logit_floor": -25.0,
+  "tie_beta": false,
+  "out": "results/o2-H64"
+}

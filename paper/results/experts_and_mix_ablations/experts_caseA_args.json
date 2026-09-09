@@ -1,0 +1,12 @@
+{
+  "case": "A",
+  "worlds": 4,
+  "world_seed0": 0,
+  "seeds": 3,
+  "H": 32,
+  "steps": 4500,
+  "cond_pool": 256,
+  "logit_floor": -25.0,
+  "device": "cuda",
+  "out": "results/experts"
+}

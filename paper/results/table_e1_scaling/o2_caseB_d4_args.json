@@ -1,0 +1,20 @@
+{
+  "cases": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "worlds": 4,
+  "world_seed0": 0,
+  "seeds": 3,
+  "H": 8,
+  "d": 4,
+  "steps": 12000,
+  "device": null,
+  "cond_pool": 256,
+  "logit_floor": -25.0,
+  "jobs": 16,
+  "threads_per_job": 2,
+  "out": "results/o2-d4"
+}
