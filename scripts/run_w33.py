@@ -6,7 +6,7 @@ Reproduction criteria are fixed in advance (user-confirmed before any
 run): R1 teacher dominates on-policy mode discovery at high sparsity;
 R2 the advantage shrinks at sparsity 1; R3 replay in between.
 
-Usage (dev battery, bizon):
+Usage (dev battery):
     python scripts/run_w33.py --cases A B C D --sparsity 1.0 4.0 \
         --arms onpolicy mix replay teacher --worlds 4 --seeds 3 \
         --H 4 --d 8 --steps 12000 --out results/w33

@@ -50,7 +50,7 @@ Output is LONG format: one row per (case, world, beta, rho, sigma,
 err_model, s_score). Skipped below-bound beta cells are counted in the
 per-world meta CSV, never silently dropped.
 
-Usage (bizon, 20 cpus):
+Usage (20 cpus):
     python scripts/run_sigma_stress.py --jobs 20 --out results/sigma-stress
 """
 

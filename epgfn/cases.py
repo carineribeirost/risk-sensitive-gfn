@@ -210,7 +210,7 @@ def psi_worst_case(world: World, idx=None):
     cfg = world.cfg
     if world.case == "A":
         psi = _sl(world.scores_neutral, idx).min(axis=-1)
-        if world.scores_named is not None:  # F7: veto at nominal c_d
+        if world.scores_named is not None:  # guarded A: veto at nominal c_d
             veto_ok = ~np.any(_sl(world.scores_named, idx)
                               >= world.c_named, axis=-1)
     elif world.case == "B":

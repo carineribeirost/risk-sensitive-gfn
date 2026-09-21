@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Contrastive fill orchestrator — the ONLY remaining s=4.0 cells.
-# All gate decisions are settled (results_log: D bases 1-2 structural,
-# w59 the recorded exception), so this does zero gate work: every world
+# All gate decisions are settled (D bases 1-2 structural, w59 the
+# recorded exception), so this does zero gate work: every world
 # is pinned from a same-sparsity record and launched with
 # --trust-recorded-gates straight into training.
 #
