@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .baselines import target_baseline
 from .cases import target_for, target_worst
 from .conditions import Condition, RiskB, tied_risk
 from .worlds import (World, WorldConfig, hardness_report, is_hard,
@@ -212,7 +213,10 @@ def run_o3(case: str, cfg: WorldConfig, world_seeds,
            w_g: float = 0.3, n_stress: int = 200,
            kappa: float = 25.0, kappa_range=None, seed: int = 0,
            contam_eps: float | None = 0.2, gate: bool = True,
-           ball: str = "kl", rho_out_grid=None):
+           ball: str = "kl", rho_out_grid=None,
+           baselines=(), desirability_lo: float = 0.50,
+           desirability_hi: float = 0.95,
+           desirability_shape: float = 1.0, skip_grid: bool = False):
     """Returns (rows, meta). One row per (world, target, t-level);
     targets are the Boltzmann pole, the worst-case pole, every tied
     (β_cvar, ρ) grid cell above the world's β bound (below-bound cells
@@ -235,7 +239,15 @@ def run_o3(case: str, cfg: WorldConfig, world_seeds,
     "risk_rho_out": the outer radius swept over the grid × the inner
     shared radius over `rho_grid`, both tail levels mid-family (the
     exact mirror of case B's "risk_asym" block). None = off (default:
-    no new rows, unchanged)."""
+    no new rows, unchanged).
+
+    `baselines`: matched-conjunctivity aggregation baselines
+    (`baselines.KINDS`) to add as extra target rows, kind
+    "baseline_<name>"; `desirability_lo/hi/shape` are the declared
+    Derringer-Suich ramp bounds passed through to the desirability
+    baseline. `skip_grid`: poles, probe cell and baselines only, no
+    (β_cvar, ρ) grid and no case-B/D asymmetric extensions — turns a
+    baseline-only comparison into a much cheaper run."""
     # defaults include the comparator corners:
     # β=1 rows are DRO-only cells, ρ=0 columns CVaR-only, β=1∧ρ=0 is
     # priced separately as the Boltzmann pole; ρ=1.2 approaches the
@@ -282,7 +294,17 @@ def run_o3(case: str, cfg: WorldConfig, world_seeds,
                         target_for(world, Condition(
                             beta_t, w_g,
                             with_ball(tied_risk(case, bp, 0.5))))))
-        for b in beta_grid:
+        for bl in baselines:
+            targets.append(
+                ("baseline_" + bl,
+                 ({"lo_q": desirability_lo, "hi_q": desirability_hi,
+                   "shape": desirability_shape}
+                  if bl == "desirability" else {}),
+                 target_baseline(world, base, bl,
+                                 lo_q=desirability_lo,
+                                 hi_q=desirability_hi,
+                                 shape=desirability_shape)))
+        for b in (() if skip_grid else beta_grid):
             if b < world.beta_min:
                 n_skipped += len(rho_grid)
                 continue
@@ -293,7 +315,7 @@ def run_o3(case: str, cfg: WorldConfig, world_seeds,
                 targets.append(("risk",
                                 {"beta_cvar": float(b), "rho": float(r)},
                                 target_for(world, cond)))
-        if case == "B":
+        if case == "B" and not skip_grid:
             bounds = world.beta_bounds
             bp = float(np.clip(0.5, bounds["p"], 1.0))
             bm = float(np.clip(0.5, bounds["m"], 1.0))
@@ -306,7 +328,7 @@ def run_o3(case: str, cfg: WorldConfig, world_seeds,
                                     {"rho_p": float(rp),
                                      "rho_m": float(rm)},
                                     target_for(world, cond)))
-        if case == "D" and rho_out_grid is not None:
+        if case == "D" and rho_out_grid is not None and not skip_grid:
             from .conditions import RiskD
             bounds = world.beta_bounds
             bi = float(np.clip(0.5, bounds["in"], 1.0))

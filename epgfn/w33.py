@@ -10,10 +10,16 @@ each batch comes from (and, for "contrastive", one auxiliary loss):
 - "mix":      uniform-over-X half (the baseline comparator).
 - "replay":   reward-prioritized replay: visited states, sampled with
               probability ∝ exp(clamped β_t·log R).
-- "teacher":  a second policy trained concurrently with TB on reward =
-              the student's squared TB residual over the teacher's own
-              samples (faithful core of adaptive teachers for amortized
-              samplers); the student's off-policy half comes from it.
+- "teacher":  a second policy trained concurrently with TB on a reward
+              built from the student's TB discrepancy over the teacher's
+              own samples (Kim et al., adaptive teachers for amortized
+              samplers), the student's off-policy half coming from it.
+              Their eq. (4) is the bare squared discrepancy; eq. (5)
+              multiplies it by (1 + C·1[δ > 0]) with C = 19 so the
+              teacher favours states the student UNDERsamples rather
+              than chasing large discrepancies of either sign; eq. (6)
+              optionally mixes in α·log R. We use C = 19 and α = 0,
+              the paper's own setting for exploration-intensive tasks.
 - "contrastive": two-buffer contrastive replay (the production D⁺/D⁻
               mechanism, battery-native form). Every visited state is
               classified by the ε-criterion (log R > log ε at the fixed
@@ -33,12 +39,17 @@ each batch comes from (and, for "contrastive", one auxiliary loss):
               (reported by loss_aux = nan, not hidden).
 
 Native metrics: the mode set is `satisfaction_mask` at
-`challenge_level(world, min_frac=0.01)`: exact, world-level machinery;
-a mode is discovered when it appears in ANY training batch. Curves of
-cumulative discovery vs samples; exact L1 to the fixed target is the
-subordinate bonus panel. The edge-share metric (share of batch points
-in the Hamming-1 shell of the ε-set) tests whether training
-oversamples the boundary of the ε-set.
+`challenge_level(world, min_frac=0.01)`: exact, world-level machinery.
+Two families are reported. Training discovery counts a mode as found
+once it appears in ANY training batch (curves of cumulative discovery
+vs samples). Policy coverage is a property of the final trained
+sampler alone: the expected fraction of the mode set a fresh budget of
+draws from it would find, computed exactly from the terminating
+distribution (no sampling noise) and read against the same quantity
+for the exact target, which is the true ceiling at that budget on a
+sparse world. The edge-share metric (share of batch points in the
+Hamming-1 shell of the ε-set) tests whether training oversamples the
+boundary of the ε-set.
 """
 
 from __future__ import annotations
@@ -48,7 +59,7 @@ import time
 import numpy as np
 import torch
 
-from .cases import EPS_REWARD, log_reward
+from .cases import EPS_REWARD, log_reward, log_reward_graded
 from .conditions import Condition, tied_risk
 from .o3 import challenge_level, satisfaction_mask
 from .policy import ConditionalPolicy
@@ -73,6 +84,27 @@ def mode_indices(world: World, min_frac: float = 0.01) -> np.ndarray:
     level (the hardest non-degenerate joint requirement)."""
     t_star = challenge_level(world, min_frac=min_frac)
     return np.flatnonzero(satisfaction_mask(world, t_star))
+
+
+def expected_coverage(p: np.ndarray, is_mode: np.ndarray,
+                      n_draws: int) -> float:
+    """Expected fraction of the mode set discovered in `n_draws` i.i.d.
+    draws from `p`: mean over modes of 1 - (1 - p_x)^n.
+
+    This is what coverage means for a TRAINED SAMPLER, as opposed to
+    what a training run happened to visit. Read it against the same
+    quantity computed for the exact target: on a sparse world even a
+    perfect sampler does not reach 1 at a finite budget, so 1 is the
+    wrong reference.
+    """
+    if n_draws <= 0:
+        return 0.0
+    pm = np.asarray(p, dtype=float)[is_mode]
+    if pm.size == 0:
+        return float("nan")
+    # 1 - (1-p)^n via log1p, stable when p is tiny
+    miss = np.exp(n_draws * np.log1p(-np.clip(pm, 0.0, 1.0 - 1e-15)))
+    return float(np.mean(1.0 - miss))
 
 
 def eps_shell(world: World, cond: Condition) -> np.ndarray:
@@ -106,16 +138,25 @@ def infonce(lp_pos: torch.Tensor, lp_neg: torch.Tensor) -> torch.Tensor:
 
 
 def run_arm(world: World, cond: Condition, cfg: TrainConfig,
-            arm: str, alpha_aux: float = 1.0,
-            buf_cap: int = 1024) -> tuple[ConditionalPolicy, list[dict]]:
-    """Train one arm; returns (student, history). History rows:
-    step / loss / samples / modes_found / frac_modes / edge_share
-    (cumulative) / l1 (exact, to the unclamped target) / wall_s;
-    the contrastive arm adds loss_aux (nan until both buffers are
+            arm: str, alpha_aux: float = 1.0, buf_cap: int = 1024,
+            graded_kappa: float = 0.0, teacher_c: float = 19.0,
+            teacher_alpha: float = 0.0, teacher_eps: float = 1e-8
+            ) -> tuple[ConditionalPolicy, list[dict]]:
+    """Train one arm; returns (student, history). History rows carry
+    both discovery families described in the module docstring (see
+    each key's comment below), plus loss / samples / edge_share
+    (cumulative) / l1 (exact, to the unclamped target) / wall_s; the
+    contrastive arm adds loss_aux (nan until both buffers are
     non-empty). `alpha_aux` and `buf_cap` are contrastive-only knobs
-    (α on L_aux; capacity of EACH buffer); other arms ignore them.
-    `loss` in the history is always the TB term alone, so it stays
-    comparable across arms."""
+    (α on L_aux; capacity of EACH buffer). `graded_kappa` > 0 replaces
+    the flat epsilon on excluded points with epsilon * exp(-kappa *
+    violation depth), removing the plateau while leaving the
+    constraint boundary where it was; the target moves with the
+    reward, as it must, since this is a different reward, not a
+    different evaluation of the same one. `teacher_c`/`teacher_alpha`/
+    `teacher_eps` are the teacher-arm eq. (5)/(6) knobs; other arms
+    ignore all four. `loss` in the history is always the TB term
+    alone, so it stays comparable across arms."""
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}")
     rng = np.random.default_rng(cfg.seed)
@@ -125,14 +166,28 @@ def run_arm(world: World, cond: Condition, cfg: TrainConfig,
     H, d = world.cfg.H, world.cfg.d
     n = world.n_points
 
-    logr_np = cond.beta_t * log_reward(world, cond)
-    target = p_star(log_reward(world, cond), cond.beta_t)
+    _lr = (log_reward(world, cond) if graded_kappa == 0.0
+           else log_reward_graded(world, cond, graded_kappa))
+    logr_np = cond.beta_t * _lr
+    target = p_star(_lr, cond.beta_t)
     logr_tr = (np.maximum(logr_np, cfg.logit_floor)
                if cfg.logit_floor is not None else logr_np)
 
     modes = mode_indices(world)
     is_mode = np.zeros(n, dtype=bool)
     is_mode[modes] = True
+    # LIVE modes: satisfying states the reward does not clamp to
+    # epsilon. Satisfaction is a property of the scores; the reward is
+    # a property of the composition. Only case B can disagree, since
+    # only case B subtracts (Φ(promoted) − γΦ(suppressed)), so a state
+    # can clear the score threshold while the composed reward turns
+    # negative and clamps; A, C and D only aggregate, so every
+    # satisfying state of theirs is live and this restriction is the
+    # identity there. It matters because coverage of a clamped mode is
+    # unreachable by construction: the exact target gives it
+    # epsilon^beta_t mass, so no sampler finds it and the ceiling, not
+    # just the policy, falls.
+    is_live = is_mode & (_lr > np.log(EPS_REWARD) + 1e-12)
     shell = eps_shell(world, cond)
 
     student, opt = make_policy_and_opt(world, cfg, dev, n_cond_features=1)
@@ -213,15 +268,26 @@ def run_arm(world: World, cond: Condition, cfg: TrainConfig,
         if arm == "replay":
             buf_pri[idx] = np.exp(logr_tr[idx])  # visited -> priority
         elif arm == "teacher" and len(off_idx):
-            # teacher reward: the student's squared residual on the
-            # teacher's OWN samples (post-update student, detached)
+            # Teacher reward, eqs. (4)-(6) of the module docstring:
+            # d_s is the student's TB discrepancy (post-update
+            # student, detached) on the teacher's OWN samples.
             t_points = points[:len(off_idx)]
             with torch.no_grad():
                 d_s = (logr[:len(off_idx)]
                        - student.log_z(feats1)[0]
                        - student.log_pf_points(
                            t_points, feats1.expand(len(off_idx), -1)))
-            logr_t = torch.log(d_s ** 2 + 1e-8)
+            # eq. (5): weight UNDERSAMPLED states, where delta > 0
+            # means the forward flow is too small. Without this the
+            # teacher chases oversampled states just as hard as missed
+            # ones, which is the opposite of what it is for.
+            wgt = 1.0 + teacher_c * (d_s > 0).to(d_s.dtype)
+            logr_t = torch.log(teacher_eps + wgt * d_s ** 2)
+            if teacher_alpha:
+                # eq. (6): mix in the student's own log-reward, so the
+                # teacher aims at regions that are both high-loss and
+                # high-reward.
+                logr_t = logr_t + teacher_alpha * logr[:len(off_idx)]
             lp_t = teacher.log_pf_points(
                 t_points, feats1.expand(len(off_idx), -1))
             dt = logr_t - teacher.log_z(feats1)[0] - lp_t
@@ -242,14 +308,37 @@ def run_arm(world: World, cond: Condition, cfg: TrainConfig,
 
         if step % cfg.eval_every == 0 or step == cfg.steps:
             lp = student.log_pf_grid(feats1[0]).cpu().numpy().reshape(-1)
+            pol = np.exp(lp)
             found = int((seen & is_mode).sum())
+            n_modes = int(is_mode.sum())
             row = {
                 "step": step, "loss": float(loss.item()),
                 "samples": samples, "modes_found": found,
-                "n_modes": int(is_mode.sum()),
-                "frac_modes": found / max(int(is_mode.sum()), 1),
+                "n_modes": n_modes,
+                # training discovery: what the run saw, injected
+                # states included
+                "frac_modes": found / max(n_modes, 1),
+                "train_discovery": found / max(n_modes, 1),
+                # final-policy coverage: properties of the trained
+                # sampler alone, exact (the terminating distribution
+                # is enumerable, so no sampling is needed to measure
+                # it)
+                "policy_mass_modes": float(pol[is_mode].sum()),
+                "policy_coverage": expected_coverage(pol, is_mode,
+                                                     samples),
+                "n_modes_live": int(is_live.sum()),
+                "policy_coverage_live": expected_coverage(pol, is_live,
+                                                          samples),
+                "target_coverage_live": expected_coverage(target, is_live,
+                                                          samples),
+                # the same budget applied to the exact target: the
+                # ceiling any sampler can reach here, and the
+                # reference policy_coverage must be read against
+                "target_coverage": expected_coverage(target, is_mode,
+                                                     samples),
+                "reward_queries": samples,
                 "edge_share": shell_hits / samples,
-                "l1": l1(np.exp(lp), target),
+                "l1": l1(pol, target),
                 "wall_s": time.time() - t0}
             if arm == "contrastive":
                 row["loss_aux"] = loss_aux

@@ -80,6 +80,15 @@ def main() -> None:
                     "is_hard verification on fast-path worlds (only "
                     "for same-(case,sparsity,config) records, see "
                     "run_w33.py)")
+    ap.add_argument("--teacher-c", type=float, default=19.0,
+                    help="forwarded to run_w33.py")
+    ap.add_argument("--teacher-alpha", type=float, default=0.0,
+                    help="forwarded to run_w33.py")
+    ap.add_argument("--graded-kappa", type=float, default=0.0,
+                    help="forwarded to run_w33.py")
+    ap.add_argument("--save-grids", action="store_true",
+                    help="forwarded to run_w33.py: save each "
+                    "fragment's exact policy grid.")
     ap.add_argument("--jobs", type=int,
                     default=min(12, os.cpu_count() or 1),
                     help="max concurrent (case, sparsity, world) "
@@ -120,6 +129,12 @@ def main() -> None:
                "--buf-cap", str(args.buf_cap),
                "--max-attempts", str(args.max_attempts),
                "--out", str(frag_out)]
+        if args.graded_kappa:
+            cmd += ["--graded-kappa", str(args.graded_kappa)]
+        cmd += ["--teacher-c", str(args.teacher_c),
+                "--teacher-alpha", str(args.teacher_alpha)]
+        if args.save_grids:
+            cmd += ["--save-grids"]
         if args.device:
             cmd += ["--device", args.device]
         if args.resume:

@@ -640,6 +640,52 @@ def fig_weight_regime(flat_o1, peaked_o1):
     _save(fig, "f9_weight_regime.pdf")
 
 
+def fig_length_arm(length_json):
+    """Overlay of the two losses on the depth axis: exact error as a
+    multiple of the sampling floor, per case, TB against SubTB. Built
+    from analyze_length_arm.py's report so the figure and the verdict
+    read the same paired runs."""
+    rep = json.load(open(length_json))
+    cells = list(rep["cells"])
+    cases = sorted({c for cell in rep["cells"].values()
+                    for c in cell["cases"]})
+    fig, axes = plt.subplots(1, len(cases),
+                             figsize=(len(cases) * UNIT[0] * 0.62,
+                                      UNIT[1]),
+                             sharey=True)
+    axes = np.atleast_1d(axes)
+    xs = np.arange(len(cells))
+    ARMS = (("tb_ratio", "TB", "-", "o"),
+            ("subtb_ratio", r"SubTB ($\lambda$=0.9)", "--", "s"))
+
+    for ax, case in zip(axes, cases):
+        for key, label, ls, marker in ARMS:
+            ys, los, his = [], [], []
+            for name in cells:
+                r = rep["cells"][name]["cases"].get(case)
+                if not r or "per_world" not in r:
+                    ys.append(np.nan)
+                    los.append(np.nan)
+                    his.append(np.nan)
+                    continue
+                pw = r["per_world"]
+                groups = {w: np.array([v]) for w, v in
+                          zip(pw["worlds"], pw[key])}
+                point, lo, hi = cluster_bootstrap_ci(groups)
+                ys.append(point)
+                los.append(point - lo)
+                his.append(hi - point)
+            ax.errorbar(xs, ys, yerr=[los, his], ls=ls, marker=marker,
+                        ms=3.5, lw=1.0, capsize=2, label=label)
+        ax.axhline(3.0, ls=":", lw=0.8, color="gray")
+        ax.set_xticks(xs, cells, fontsize=7)
+        ax.set_title(f"case {case}", fontsize=8)
+        ax.set_xlabel("depth cell", fontsize=8)
+    axes[0].set_ylabel("exact error / sampling floor")
+    axes[0].legend(fontsize=7)
+    _save(fig, "fig_length_arm.pdf")
+
+
 def main() -> None:
     """Parse CLI arguments and dispatch to the requested figure- or
     table-generating function."""
@@ -670,6 +716,8 @@ def main() -> None:
     p = sub.add_parser("f9")
     p.add_argument("--flat-o1", required=True)
     p.add_argument("--peaked-o1", required=True)
+    p = sub.add_parser("f10")
+    p.add_argument("--length-json", required=True)
     p = sub.add_parser("tables")
     p.add_argument("--o1-dir", default=None)
     p.add_argument("--o2-dirs", nargs="+", default=[])
@@ -695,6 +743,8 @@ def main() -> None:
         fig_rho_out(a.o3_dir, a.o1_dir)
     elif a.cmd == "f9":
         fig_weight_regime(a.flat_o1, a.peaked_o1)
+    elif a.cmd == "f10":
+        fig_length_arm(a.length_json)
     elif a.cmd == "tables":
         tables(a.o1_dir, a.o2_dirs, a.oracle_dir, a.experts_dir)
 

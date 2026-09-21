@@ -20,8 +20,10 @@ import pathlib
 import numpy as np
 import torch
 
+from epgfn.cases import log_reward
 from epgfn.runio import Progress, unique_run_dir
 from epgfn.stats import cluster_bootstrap_ci
+from epgfn.target import p_star
 from epgfn.train import TrainConfig, default_device
 from epgfn.w33 import ARMS, fixed_condition, run_arm, samples_to_frac
 from epgfn.worlds import WorldConfig, is_hard, make_world, sample_world
@@ -101,6 +103,25 @@ def main() -> None:
                     "this skips repaying it. Never combine with "
                     "cross-sparsity pinned seeds: there the "
                     "verification IS the hardness probe.")
+    ap.add_argument("--teacher-c", type=float, default=19.0,
+                    help="weight on undersampled states in the teacher "
+                    "reward, eq. (5) of epgfn.w33's docstring; 19 is "
+                    "the cited paper's value for every task, 0 "
+                    "reduces to the bare eq. (4)")
+    ap.add_argument("--teacher-alpha", type=float, default=0.0,
+                    help="reward mixing, eq. (6); the cited paper uses "
+                    "0.5 in general and 0.0 on exploration-intensive "
+                    "tasks, which is the regime here")
+    ap.add_argument("--graded-kappa", type=float, default=0.0,
+                    help="replace the flat epsilon on excluded points "
+                    "with epsilon*exp(-kappa*violation depth), "
+                    "removing the plateau without moving the "
+                    "boundary. 0 = the plain reward, bitwise")
+    ap.add_argument("--save-grids", action="store_true",
+                    help="write each run's exact terminating "
+                    "log-density over X, with the target, to "
+                    "<out>/grids/*.npz. Makes every coverage "
+                    "quantity recomputable without retraining.")
     ap.add_argument("--out", default="results/w33")
     args = ap.parse_args()
 
@@ -149,6 +170,10 @@ def main() -> None:
 
     fields = ["case", "sparsity", "world", "gate_attempts", "arm",
               "seed", "n_modes", "modes_found", "frac_modes",
+              "train_discovery", "policy_coverage", "target_coverage",
+              "n_modes_live", "policy_coverage_live",
+              "target_coverage_live",
+              "policy_mass_modes", "reward_queries",
               "samples_to_50", "samples_to_80", "edge_share",
               "final_l1", "final_loss", "wall_s"]
     rows = []
@@ -235,7 +260,10 @@ def main() -> None:
                             student, hist = run_arm(
                                 world, cond, cfg, arm,
                                 alpha_aux=args.alpha_aux,
-                                buf_cap=args.buf_cap)
+                                buf_cap=args.buf_cap,
+                                graded_kappa=args.graded_kappa,
+                                teacher_c=args.teacher_c,
+                                teacher_alpha=args.teacher_alpha)
                             f = hist[-1]
                             row = {"case": case, "sparsity": s,
                                    "world": world.seed,
@@ -244,6 +272,21 @@ def main() -> None:
                                    "n_modes": f["n_modes"],
                                    "modes_found": f["modes_found"],
                                    "frac_modes": f["frac_modes"],
+                                   "train_discovery":
+                                       f["train_discovery"],
+                                   "policy_coverage":
+                                       f["policy_coverage"],
+                                   "target_coverage":
+                                       f["target_coverage"],
+                                   "n_modes_live": f["n_modes_live"],
+                                   "policy_coverage_live":
+                                       f["policy_coverage_live"],
+                                   "target_coverage_live":
+                                       f["target_coverage_live"],
+                                   "policy_mass_modes":
+                                       f["policy_mass_modes"],
+                                   "reward_queries":
+                                       f["reward_queries"],
                                    "samples_to_50":
                                        samples_to_frac(hist, 0.5),
                                    "samples_to_80":
@@ -252,6 +295,20 @@ def main() -> None:
                                    "final_l1": f["l1"],
                                    "final_loss": f["loss"],
                                    "wall_s": f["wall_s"]}
+                            if args.save_grids:
+                                gd = out / "grids"
+                                gd.mkdir(exist_ok=True)
+                                feats = torch.zeros(1, 1,
+                                                    device=args.device)
+                                lp = (student.log_pf_grid(feats[0])
+                                      .cpu().numpy().reshape(-1))
+                                np.savez_compressed(
+                                    gd / (f"{case}_s{s}_w{world.seed}"
+                                          f"_{arm}_seed{seed}.npz"),
+                                    log_pf=lp,
+                                    target=p_star(
+                                        log_reward(world, cond),
+                                        cond.beta_t))
                             rows.append(row)
                             writer.writerow(row)
                             fh.flush()

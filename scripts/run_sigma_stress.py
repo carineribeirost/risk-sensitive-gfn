@@ -86,6 +86,28 @@ def score_blocks(world):
     return {"nested": world.scores_nested}
 
 
+def lightest_weight(world):
+    """Smallest nominal weight anywhere in the world: how light the
+    lightest medoid actually is.
+
+    NOT min(world.beta_bounds.values()). For case D that carries the
+    shared-beta validity bound w_inner.min(axis=1).max(), a max over
+    origins, which overstates the lightest inner weight by up to three
+    orders of magnitude on peaked draws (alpha = 0.3, seed 3: 1.3e-2
+    against a true 1.0e-5). A/B/C bounds happen to coincide with their
+    set minima; D does not.
+    """
+    if world.case == "A":
+        return float(world.w_neutral.min())
+    if world.case == "B":
+        return float(min(world.p_plus.min(), world.q_minus.min()))
+    if world.case == "C":
+        return float(world.p_plus.min())
+    if world.case == "D":
+        return float(min(world.w_inner.min(), world.pi_outer.min()))
+    raise ValueError(f"unknown case {world.case!r}")
+
+
 def utility_matrix(world, stress, model, s_score, rng, n_draws):
     """(N, S) realised plain-weighted-mean utility per stress draw."""
     w_on, a_on = _NOISY[model]
@@ -182,7 +204,7 @@ def run_unit(case, cfg, ws, betas, rhos, sigmas, s_scores, n_stress,
                     "sat_mass": mass, "eff_candidates": eff,
                     "ball": ball,
                     "weight_alpha": world.cfg.weight_alpha,
-                    "w_min": float(min(world.beta_bounds.values())),
+                    "w_min": lightest_weight(world),
                     "stress_mean": float(realised.mean()),
                     "stress_p05": float(np.quantile(realised, 0.05)),
                     **contam})

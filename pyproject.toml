@@ -3,7 +3,7 @@ name = "epgfn"
 version = "1.0.0"
 description = "Risk-sensitive DRO-CVaR reward composition with exact targets and a conditional GFlowNet"
 requires-python = ">=3.11"
-dependencies = ["numpy", "scipy", "torch", "matplotlib", "scienceplots"]
+dependencies = ["numpy", "scipy", "torch", "matplotlib", "scienceplots", "tqdm"]
 
 [project.optional-dependencies]
 dev = ["pytest"]

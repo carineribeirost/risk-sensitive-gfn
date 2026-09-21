@@ -122,6 +122,64 @@ def log_reward_from(world: World, cond: Condition, psi: np.ndarray,
     return np.log(r)
 
 
+def violation_depth(world: World, risk, idx=None) -> np.ndarray:
+    """How badly each point misses its case's constraint, in [0, 1].
+
+    0 for feasible points and for points exactly on the boundary; 1
+    for the worst violation the constraint admits. Cases with no
+    exclusion return all zeros. This is the quantity the graded
+    penalty rides on: the flat epsilon on every excluded point makes
+    the excluded region exactly flat, and a flat region is what lets
+    an on-policy learner settle inside it.
+    """
+    n = world.n_points if idx is None else len(idx)
+    d = np.zeros(n, dtype=float)
+    sig = getattr(risk, "sigma", 0.0)
+
+    def _veto_depth(thr):
+        a = _sl(world.scores_named, idx)
+        over = np.clip((a - thr) / np.maximum(1.0 - thr, 1e-12), 0.0, 1.0)
+        return over.max(axis=-1)
+
+    if world.case == "A":
+        if world.scores_named is not None:
+            d = _veto_depth(world.c_named - getattr(risk, "delta", 0.0) - sig)
+    elif world.case == "B":
+        if world.cfg.use_floor:
+            geom = getattr(risk, "geometry", "kl")
+            sp = _sl(world.scores_plus, idx)
+            phi_plus = dro_cvar_lower(sp - sig if sig else sp,
+                                      world.p_plus, risk.beta_p,
+                                      risk.rho_p, geometry=geom)
+            f = world.floor_value
+            d = np.clip((f - phi_plus) / max(abs(f), 1e-12), 0.0, 1.0)
+    elif world.case == "C":
+        d = _veto_depth(world.c_named - risk.delta - sig)
+    return d
+
+
+def log_reward_graded(world: World, cond: Condition, kappa: float,
+                      idx=None) -> np.ndarray:
+    """log R with the flat epsilon replaced by a graded penalty.
+
+    Excluded points get `epsilon * exp(-kappa * depth)` rather than a
+    constant, so the excluded region carries a gradient back toward
+    the boundary instead of being a plateau. At depth 0 this equals
+    the plain reward exactly, so the two agree on the boundary and
+    differ only in how steeply the interior falls away. kappa = 0
+    reproduces the flat reward bitwise.
+    """
+    psi, floor_ok, veto_ok = psi_and_masks(world, cond.risk, idx)
+    base = cond.w_g * _sl(world.g, idx) + cond.w_s * psi
+    r = np.maximum(base, EPS_REWARD)
+    ok = floor_ok & veto_ok
+    if kappa == 0.0:
+        return np.log(np.where(ok, r, EPS_REWARD))
+    d = violation_depth(world, cond.risk, idx)
+    penal = EPS_REWARD * np.exp(-float(kappa) * d)
+    return np.log(np.where(ok, r, np.maximum(penal, 1e-300)))
+
+
 def log_reward(world: World, cond: Condition, idx=None) -> np.ndarray:
     """log R(x), strictly finite; over X or a subset `idx`."""
     psi, floor_ok, veto_ok = psi_and_masks(world, cond.risk, idx)

@@ -15,6 +15,16 @@ def _cluster_means(groups: dict) -> np.ndarray:
     return np.array([np.mean(v) for v in groups.values()], dtype=float)
 
 
+def _cohens_d(obs: float, sd: float) -> float:
+    """Effect size, with the two degenerate cases kept apart. A zero
+    spread around a non-zero mean is a genuinely unbounded effect
+    (inf); a zero spread around a zero mean is the strongest possible
+    null and must report 0.0, not inf."""
+    if sd > 0:
+        return float(obs / sd)
+    return 0.0 if obs == 0.0 else np.inf
+
+
 def cluster_bootstrap_ci(groups: dict, n_boot: int = 2000,
                          alpha: float = 0.05, seed: int = 0) -> tuple:
     """Percentile CI for the grand mean; outer resampling over clusters,
@@ -56,7 +66,7 @@ def cluster_permutation_test(groups_a: dict, groups_b: dict,
                  / (na + len(mb) - 2))
     return {"diff": float(obs),
             "p_value": (count + 1) / (n_perm + 1),
-            "cohens_d": float(obs / sd) if sd > 0 else np.inf}
+            "cohens_d": _cohens_d(obs, sd)}
 
 
 def paired_sign_permutation(deltas, n_perm: int = 5000,
@@ -73,7 +83,7 @@ def paired_sign_permutation(deltas, n_perm: int = 5000,
     sd = d.std(ddof=1) if len(d) > 1 else 0.0
     return {"mean": float(obs),
             "p_value": (count + 1) / (n_perm + 1),
-            "cohens_d": float(obs / sd) if sd > 0 else np.inf,
+            "cohens_d": _cohens_d(obs, sd),
             "n": int(len(d))}
 
 

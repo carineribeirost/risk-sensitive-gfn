@@ -69,6 +69,12 @@ def main() -> None:
     ap.add_argument("--use-sigma", action="store_true",
                     help="paper 2 / contingency C1: sigma condition "
                     "axis in both arms")
+    ap.add_argument("--net-dim", type=int, default=None,
+                    help="trunk width; default is the TrainConfig "
+                    "value. Sweeping this is what separates a "
+                    "capacity limit from an optimisation one.")
+    ap.add_argument("--net-depth", type=int, default=None,
+                    help="trunk depth; default is the TrainConfig value")
     ap.add_argument("--floor-samples", type=int, default=None)
     ap.add_argument("--device", default=default_device())
     ap.add_argument("--resume", default=None,
@@ -172,11 +178,17 @@ def main() -> None:
                                   f"{kind}: resumed "
                                   f"(L1={row['heldout_l1']:.4f})")
                         continue
+                    net = {}
+                    if args.net_dim is not None:
+                        net["dim"] = args.net_dim
+                    if args.net_depth is not None:
+                        net["depth"] = args.net_depth
                     cfg = TrainConfig(loss=kind, steps=args.steps,
                                       seed=seed, device=args.device,
                                       cond_pool=args.cond_pool,
                                       logit_floor=(args.logit_floor or
-                                                   None))
+                                                   None),
+                                      **({"net": net} if net else {}))
                     _, _, hist = train_policy(world, cfg, ranges)
                     final = hist[-1]
                     row = {"case": args.case, "world": world.seed,

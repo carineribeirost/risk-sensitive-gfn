@@ -47,6 +47,10 @@ def main() -> None:
     ap.add_argument("--cond-pool", type=int, default=256)
     ap.add_argument("--logit-floor", type=float, default=-25.0)
     ap.add_argument("--use-sigma", action="store_true")
+    ap.add_argument("--net-dim", type=int, default=None,
+                    help="forwarded: trunk width")
+    ap.add_argument("--net-depth", type=int, default=None,
+                    help="forwarded: trunk depth")
     ap.add_argument("--floor-samples", type=int, default=None)
     ap.add_argument("--device", default=None,
                     help="forwarded to run_oracle_gap.py if set")
@@ -94,6 +98,10 @@ def main() -> None:
             cmd += ["--floor-samples", str(args.floor_samples)]
         if args.use_sigma:
             cmd += ["--use-sigma"]
+        if args.net_dim is not None:
+            cmd += ["--net-dim", str(args.net_dim)]
+        if args.net_depth is not None:
+            cmd += ["--net-depth", str(args.net_depth)]
         if args.device:
             cmd += ["--device", args.device]
         if args.resume:

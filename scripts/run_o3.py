@@ -11,6 +11,7 @@ import argparse
 import json
 from concurrent.futures import ProcessPoolExecutor
 
+from epgfn.baselines import KINDS as BASELINE_KINDS
 from epgfn.o3 import run_o3, summarize
 from epgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
 from epgfn.runio import Progress, unique_run_dir, write_csv
@@ -63,6 +64,23 @@ def main() -> None:
                     default=None,
                     help="case D only: sweep the conditioned "
                     "outer radius; adds target kind risk_rho_out")
+    ap.add_argument("--baselines", nargs="+", default=[],
+                    choices=list(BASELINE_KINDS),
+                    help="matched-conjunctivity aggregation baselines. "
+                    "hard_min is the worst pole and is already "
+                    "reported; it is offered here only so a run can "
+                    "assert the identity.")
+    ap.add_argument("--desirability-lo", type=float, default=0.50,
+                    help="declared lower quantile of the Derringer-Suich "
+                    "desirability ramp, per score column")
+    ap.add_argument("--desirability-hi", type=float, default=0.95,
+                    help="declared upper quantile of the ramp")
+    ap.add_argument("--desirability-shape", type=float, default=1.0,
+                    help="ramp exponent; 1.0 is linear")
+    ap.add_argument("--skip-grid", action="store_true",
+                    help="poles, probe cell and baselines only; skip "
+                    "the beta-by-rho risk grid. Turns a baseline "
+                    "comparison into minutes.")
     ap.add_argument("--jobs", type=int, default=1,
                     help="parallel (case, world) units. Every unit is "
                     "fully determined by its seed, so any value gives "
@@ -91,7 +109,12 @@ def main() -> None:
               n_stress=args.n_stress, kappa=args.kappa, kappa_range=kr,
               contam_eps=(args.contam_eps
                           if args.contam_eps > 0 else None),
-              gate=not args.no_gate)
+              gate=not args.no_gate,
+              baselines=tuple(args.baselines),
+              desirability_lo=args.desirability_lo,
+              desirability_hi=args.desirability_hi,
+              desirability_shape=args.desirability_shape,
+              skip_grid=args.skip_grid)
     # (case, seed) units are independent (stress rng is per-world
     # seeded), so the pool equals the sequential run byte-for-byte
     units = [(case, s) for case in args.cases for s in seeds]
