@@ -14,11 +14,11 @@ import json
 
 import numpy as np
 
-from epgfn.cases import mean_mc_floor
-from epgfn.runio import unique_run_dir
-from epgfn.stats import cluster_bootstrap_ci
-from epgfn.train import TrainConfig, default_device, ranges_for, train_policy
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.cases import mean_mc_floor
+from rsgfn.runio import unique_run_dir
+from rsgfn.stats import cluster_bootstrap_ci
+from rsgfn.train import TrainConfig, default_device, ranges_for, train_policy
+from rsgfn.worlds import WorldConfig, sample_world
 
 
 def main() -> None:

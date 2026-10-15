@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from scipy.optimize import minimize
 
-from epgfn.risk import (cvar_lower, cvar_upper, dro_cvar_lower,
+from rsgfn.risk import (cvar_lower, cvar_upper, dro_cvar_lower,
                         dro_cvar_upper, flattened_dro_cvar,
                         nested_dro_cvar)
 

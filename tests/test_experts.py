@@ -3,9 +3,9 @@ trainer."""
 
 import numpy as np
 
-from epgfn.conditions import ConditionRanges, expert_subset
-from epgfn.train import TrainConfig, train_expert
-from epgfn.worlds import WorldConfig, make_world
+from rsgfn.conditions import ConditionRanges, expert_subset
+from rsgfn.train import TrainConfig, train_expert
+from rsgfn.worlds import WorldConfig, make_world
 
 
 def _ranges(case, **kw):
@@ -42,7 +42,7 @@ def test_train_expert_descends_to_its_target():
     """Training a single expert on its target condition reduces held-out L1
     below the initial value."""
     world = make_world("A", WorldConfig(H=8), seed=1)
-    from epgfn.train import ranges_for
+    from rsgfn.train import ranges_for
     cond = expert_subset(ranges_for(world))[4]  # mid condition
     cfg = TrainConfig(steps=80, eval_every=40, seed=0,
                       net=dict(dim=32, depth=2, cond_dim=16, x1_dim=8))

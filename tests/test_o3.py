@@ -5,11 +5,11 @@ which is fooled by a point whose strong state compensates a weak one."""
 
 import numpy as np
 
-from epgfn.cases import psi_worst_case, target_for, target_worst
-from epgfn.conditions import Condition, tied_risk
-from epgfn.o3 import (challenge_level, dist_metrics, draw_stress,
+from rsgfn.cases import psi_worst_case, target_for, target_worst
+from rsgfn.conditions import Condition, tied_risk
+from rsgfn.o3 import (challenge_level, dist_metrics, draw_stress,
                       run_o3, satisfaction_mask, stress_metrics)
-from epgfn.worlds import CASES, World, WorldConfig, make_world
+from rsgfn.worlds import CASES, World, WorldConfig, make_world
 
 CFG = WorldConfig(H=12)
 

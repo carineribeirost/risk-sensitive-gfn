@@ -42,7 +42,7 @@ cd "$REPO"
 PY="${PY:-python}"
 
 # The project has no [build-system], so `uv sync` installs dependencies
-# without installing `epgfn` itself, and every driver imports it by name.
+# without installing `rsgfn` itself, and every driver imports it by name.
 # Putting the repo root on the path makes the queue work whether or not
 # the package was installed.
 export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}$REPO"
@@ -116,11 +116,11 @@ preflight() {
     warn "'$PY' cannot import torch. Try PY=.venv/bin/python"; bad=1; }
   # Without these the battery reproduces exactly the number the reviewer
   # objected to, at a cost of tens of GPU-hours.
-  grep -q policy_coverage epgfn/w33.py || {
-    warn "epgfn/w33.py has no policy_coverage; the tree is behind. git pull."; bad=1; }
+  grep -q policy_coverage rsgfn/w33.py || {
+    warn "rsgfn/w33.py has no policy_coverage; the tree is behind. git pull."; bad=1; }
   grep -q target_coverage scripts/run_w33.py || {
     warn "scripts/run_w33.py does not write target_coverage. git pull."; bad=1; }
-  [ -f epgfn/baselines.py ] || { warn "epgfn/baselines.py missing. git pull."; bad=1; }
+  [ -f rsgfn/baselines.py ] || { warn "rsgfn/baselines.py missing. git pull."; bad=1; }
 
   "$PY" - <<'EOF' 2>/dev/null || warn "GPU query failed; continuing"
 import torch

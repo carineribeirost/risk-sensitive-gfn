@@ -61,7 +61,7 @@ class Progress:
     When stdout is redirected to a log, tqdm is put in
     one-line-per-update mode: an animated bar written to a file fills
     it with carriage returns and makes `tail -f` unreadable. Set
-    EPGFN_BAR=0 to force the plain form, EPGFN_BAR=1 to force the
+    RSGFN_BAR=0 to force the plain form, RSGFN_BAR=1 to force the
     animated one.
     """
 
@@ -74,7 +74,7 @@ class Progress:
         self.done = 0
         self.label = label or "run"
         self.t0 = time.monotonic()
-        env = os.environ.get("EPGFN_BAR")
+        env = os.environ.get("RSGFN_BAR")
         live = sys.stdout.isatty() if env not in ("0", "1") else env == "1"
         self._bar = None
         try:

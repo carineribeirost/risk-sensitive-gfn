@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from epgfn.conditions import ConditionRanges
+from rsgfn.conditions import ConditionRanges
 
 
 def test_tied_sample_shares_beta_keeps_rho_free():

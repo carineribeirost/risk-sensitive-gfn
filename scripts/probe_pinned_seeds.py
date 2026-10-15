@@ -23,7 +23,7 @@ import sys
 
 from probe_gate import criteria
 
-from epgfn.worlds import WorldConfig, hardness_report, is_hard, make_world
+from rsgfn.worlds import WorldConfig, hardness_report, is_hard, make_world
 
 
 def main() -> None:

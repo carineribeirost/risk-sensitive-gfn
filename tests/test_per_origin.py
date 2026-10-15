@@ -7,12 +7,12 @@ O1b separability metric is positive on a gated world."""
 import numpy as np
 import pytest
 
-from epgfn.cases import psi_and_masks
-from epgfn.conditions import RiskB, RiskC, RiskD, tied_risk
-from epgfn.o1 import o1_separability
-from epgfn.o3 import run_o3
-from epgfn.risk import cvar_lower, cvar_upper, dro_cvar_lower
-from epgfn.worlds import WorldConfig, make_world, sample_world
+from rsgfn.cases import psi_and_masks
+from rsgfn.conditions import RiskB, RiskC, RiskD, tied_risk
+from rsgfn.o1 import o1_separability
+from rsgfn.o3 import run_o3
+from rsgfn.risk import cvar_lower, cvar_upper, dro_cvar_lower
+from rsgfn.worlds import WorldConfig, make_world, sample_world
 
 CFG = WorldConfig(H=12)
 

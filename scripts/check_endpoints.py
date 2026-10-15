@@ -29,7 +29,7 @@ import pathlib
 
 import numpy as np
 
-from epgfn.stats import cluster_permutation_test, holm
+from rsgfn.stats import cluster_permutation_test, holm
 
 SEP_MARGIN = 0.05
 O2_LINE = 3.0
@@ -270,7 +270,7 @@ def check_recovery(csv_path: str, primary_model: str = "crash",
     sign permutation; Holm across the sigma grid; pass if any sigma
     rejects with positive mean. Also reports the winsor and crude
     arms (fallback crossing is exploratory)."""
-    from epgfn.stats import paired_sign_permutation
+    from rsgfn.stats import paired_sign_permutation
     rows = list(csv.DictReader(open(csv_path)))
     for r in rows:
         for k in ("level", "sigma", "sat_mass_true", "tv_true"):

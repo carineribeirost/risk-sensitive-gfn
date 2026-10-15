@@ -5,9 +5,9 @@ segment carries weight."""
 import numpy as np
 import torch
 
-from epgfn.policy import ConditionalPolicy
-from epgfn.train import TrainConfig, _subtb_loss, train_policy
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.policy import ConditionalPolicy
+from rsgfn.train import TrainConfig, _subtb_loss, train_policy
+from rsgfn.worlds import WorldConfig, sample_world
 
 
 def test_default_policy_has_no_flow_params():

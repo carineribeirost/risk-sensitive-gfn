@@ -11,10 +11,10 @@ from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 
-from epgfn.o1 import run_o1
-from epgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
-from epgfn.runio import Progress, unique_run_dir, write_csv
-from epgfn.worlds import WorldConfig
+from rsgfn.o1 import run_o1
+from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
+from rsgfn.runio import Progress, unique_run_dir, write_csv
+from rsgfn.worlds import WorldConfig
 
 
 def main() -> None:

@@ -37,7 +37,7 @@ from collections import Counter
 
 import numpy as np
 
-from epgfn.stats import (cluster_bootstrap_ci, paired_sign_permutation,
+from rsgfn.stats import (cluster_bootstrap_ci, paired_sign_permutation,
                          tost)
 
 METRICS = ("sat_mass", "eff_candidates", "stress_mean", "stress_p05")

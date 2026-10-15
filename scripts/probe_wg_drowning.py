@@ -18,9 +18,9 @@ import json
 
 import numpy as np
 
-from epgfn.o1 import o1_grid
-from epgfn.runio import unique_run_dir, write_csv
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.o1 import o1_grid
+from rsgfn.runio import unique_run_dir, write_csv
+from rsgfn.worlds import WorldConfig, sample_world
 
 WG_DEFAULT = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99]
 WG_FAMILY_MAX = 0.9

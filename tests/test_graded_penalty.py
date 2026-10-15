@@ -8,10 +8,10 @@ with epsilon * exp(-kappa * violation depth): same boundary, no plateau.
 import numpy as np
 import pytest
 
-from epgfn.cases import (EPS_REWARD, log_reward, log_reward_graded,
+from rsgfn.cases import (EPS_REWARD, log_reward, log_reward_graded,
                          psi_and_masks, violation_depth)
-from epgfn.conditions import Condition, tied_risk
-from epgfn.worlds import WorldConfig, make_world
+from rsgfn.conditions import Condition, tied_risk
+from rsgfn.worlds import WorldConfig, make_world
 
 CFG = WorldConfig(H=16, d=2, geometry="grid")
 CASES = ("A", "B", "C", "D")

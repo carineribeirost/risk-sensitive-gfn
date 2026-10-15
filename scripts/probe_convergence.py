@@ -11,11 +11,11 @@ Usage:
 import argparse
 import json
 
-from epgfn.runio import unique_run_dir
-from epgfn.cases import mean_mc_floor
-from epgfn.train import TrainConfig, default_device, ranges_for, \
+from rsgfn.runio import unique_run_dir
+from rsgfn.cases import mean_mc_floor
+from rsgfn.train import TrainConfig, default_device, ranges_for, \
     train_policy
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.worlds import WorldConfig, sample_world
 
 
 def main() -> None:

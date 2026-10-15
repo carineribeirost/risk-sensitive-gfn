@@ -19,11 +19,11 @@ import pathlib
 
 import numpy as np
 
-from epgfn.cases import mean_mc_floor
-from epgfn.runio import Progress, unique_run_dir
-from epgfn.stats import cluster_bootstrap_ci, cluster_permutation_test
-from epgfn.train import TrainConfig, default_device, ranges_for, train_policy
-from epgfn.worlds import WorldConfig, is_hard, make_world, sample_world
+from rsgfn.cases import mean_mc_floor
+from rsgfn.runio import Progress, unique_run_dir
+from rsgfn.stats import cluster_bootstrap_ci, cluster_permutation_test
+from rsgfn.train import TrainConfig, default_device, ranges_for, train_policy
+from rsgfn.worlds import WorldConfig, is_hard, make_world, sample_world
 
 
 def main() -> None:

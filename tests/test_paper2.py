@@ -8,12 +8,12 @@ import dataclasses
 import numpy as np
 import pytest
 
-from epgfn.cases import psi_and_masks, target_for
-from epgfn.conditions import Condition, ConditionRanges, RiskC, tied_risk
-from epgfn.corrupt import MODELS, corrupt_world, crude_world
-from epgfn.risk import winsorize_scores
-from epgfn.train import TrainConfig, ranges_for, train_policy
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.cases import psi_and_masks, target_for
+from rsgfn.conditions import Condition, ConditionRanges, RiskC, tied_risk
+from rsgfn.corrupt import MODELS, corrupt_world, crude_world
+from rsgfn.risk import winsorize_scores
+from rsgfn.train import TrainConfig, ranges_for, train_policy
+from rsgfn.worlds import WorldConfig, sample_world
 
 
 @pytest.fixture(scope="module")

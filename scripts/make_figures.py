@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import scienceplots  # noqa: E402,F401
 
-from epgfn.stats import cluster_bootstrap_ci  # noqa: E402
+from rsgfn.stats import cluster_bootstrap_ci  # noqa: E402
 
 # 'bright' = Paul Tol's colorblind-safe palette (user standard);
 # 'no-latex' keeps rendering machine-independent (no TeX needed).

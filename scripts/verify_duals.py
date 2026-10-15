@@ -1,4 +1,4 @@
-"""Numerical verification of the DRO-CVaR duals in `epgfn.risk`.
+"""Numerical verification of the DRO-CVaR duals in `rsgfn.risk`.
 
 The duals are used as ground truth everywhere in the study — the exact
 targets, the oracle comparisons, the hardness probes — so the appendix
@@ -38,7 +38,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from epgfn.risk import (  # noqa: E402
+from rsgfn.risk import (  # noqa: E402
     BALL_RHO_GRIDS, GEOMETRIES, _sup_chi2_linear, _sup_kl_linear,
     _sup_tv_linear, cvar_lower, dro_cvar_lower, dro_cvar_upper)
 

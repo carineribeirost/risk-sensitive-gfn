@@ -21,13 +21,13 @@ import numpy as np
 import pytest
 from scipy.optimize import linprog, minimize
 
-from epgfn.cases import psi_and_masks
-from epgfn.conditions import ConditionRanges, RiskA, RiskD, tied_risk
-from epgfn.o1 import o1_grid, o1_rho_out_sep, o1_separability
-from epgfn.risk import (GEOMETRIES, _sup_chi2_linear, _sup_tv_linear,
+from rsgfn.cases import psi_and_masks
+from rsgfn.conditions import ConditionRanges, RiskA, RiskD, tied_risk
+from rsgfn.o1 import o1_grid, o1_rho_out_sep, o1_separability
+from rsgfn.risk import (GEOMETRIES, _sup_chi2_linear, _sup_tv_linear,
                         cvar_lower, dro_cvar_lower, dro_cvar_upper,
                         nested_dro_cvar)
-from epgfn.worlds import (WorldConfig, hardness_report, make_world,
+from rsgfn.worlds import (WorldConfig, hardness_report, make_world,
                           sample_world)
 
 
@@ -358,9 +358,9 @@ def test_nested_chi2_crude_world_targets_finite():
     """target_for stays finite and normalized on the exact crude-world chi2
     configuration that once produced a NaN."""
     # end-to-end: the exact configuration that produced the NaN
-    from epgfn.cases import target_for
-    from epgfn.conditions import Condition
-    from epgfn.corrupt import crude_world
+    from rsgfn.cases import target_for
+    from rsgfn.conditions import Condition
+    from rsgfn.corrupt import crude_world
     world, _ = sample_world("D", WorldConfig(H=8), seed=1)
     cw = crude_world(world)
     for b, r in ((0.3, 1.0), (0.3, 3.0), (0.6, 0.3)):

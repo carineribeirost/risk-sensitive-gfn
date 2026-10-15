@@ -6,11 +6,11 @@ import numpy as np
 import pytest
 import torch
 
-from epgfn.policy import ConditionalPolicy
-from epgfn.train import (TrainConfig, default_device, evaluate,
+from rsgfn.policy import ConditionalPolicy
+from rsgfn.train import (TrainConfig, default_device, evaluate,
                          ranges_for, train_policy)
-from epgfn.cases import target_for
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.cases import target_for
+from rsgfn.worlds import WorldConfig, sample_world
 
 
 def test_terminating_density_sums_to_one():

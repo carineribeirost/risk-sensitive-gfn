@@ -3,7 +3,7 @@ output directory."""
 
 import json
 
-from epgfn.runio import unique_run_dir
+from rsgfn.runio import unique_run_dir
 
 
 def test_unique_run_dirs_never_collide(tmp_path):

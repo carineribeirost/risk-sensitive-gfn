@@ -11,11 +11,11 @@ import argparse
 import json
 from concurrent.futures import ProcessPoolExecutor
 
-from epgfn.baselines import KINDS as BASELINE_KINDS
-from epgfn.o3 import run_o3, summarize
-from epgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
-from epgfn.runio import Progress, unique_run_dir, write_csv
-from epgfn.worlds import WorldConfig
+from rsgfn.baselines import KINDS as BASELINE_KINDS
+from rsgfn.o3 import run_o3, summarize
+from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
+from rsgfn.runio import Progress, unique_run_dir, write_csv
+from rsgfn.worlds import WorldConfig
 
 
 def main() -> None:

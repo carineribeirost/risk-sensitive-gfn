@@ -8,7 +8,7 @@ import pathlib
 
 import numpy as np
 
-from epgfn.stats import holm
+from rsgfn.stats import holm
 
 spec = importlib.util.spec_from_file_location(
     "check_endpoints",

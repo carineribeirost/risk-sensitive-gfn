@@ -62,13 +62,13 @@ from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 
-from epgfn.cases import target_for
-from epgfn.conditions import Condition, tied_risk
-from epgfn.o3 import (challenge_level, contamination_metrics, draw_stress,
+from rsgfn.cases import target_for
+from rsgfn.conditions import Condition, tied_risk
+from rsgfn.o3 import (challenge_level, contamination_metrics, draw_stress,
                       satisfaction_mask)
-from epgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
-from epgfn.runio import Progress, unique_run_dir, write_csv
-from epgfn.worlds import WorldConfig, hardness_report, is_hard, sample_world
+from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
+from rsgfn.runio import Progress, unique_run_dir, write_csv
+from rsgfn.worlds import WorldConfig, hardness_report, is_hard, sample_world
 
 ERR_MODELS = ("weights", "scores", "both")
 _NOISY = {"weights": (True, False), "scores": (False, True),

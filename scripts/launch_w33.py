@@ -31,11 +31,11 @@ import sys
 
 import numpy as np
 
-from epgfn.launch import fan_out, merge_fragments, one_fragment, \
+from rsgfn.launch import fan_out, merge_fragments, one_fragment, \
     write_merged_csv
-from epgfn.runio import unique_run_dir
-from epgfn.stats import cluster_bootstrap_ci
-from epgfn.w33 import ARMS
+from rsgfn.runio import unique_run_dir
+from rsgfn.stats import cluster_bootstrap_ci
+from rsgfn.w33 import ARMS
 
 
 def main() -> None:

@@ -23,9 +23,9 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from epgfn.policy import ConditionalPolicy
-from epgfn.train import TrainConfig, train_policy
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.policy import ConditionalPolicy
+from rsgfn.train import TrainConfig, train_policy
+from rsgfn.worlds import WorldConfig, sample_world
 
 GOLDEN = "tests/data/w31_golden.npz"
 KEYMAP = {"x1_embed.weight": "coord_embed.weight"}

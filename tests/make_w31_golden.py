@@ -12,9 +12,9 @@ Usage: .venv/bin/python tests/make_w31_golden.py
 import numpy as np
 import torch
 
-from epgfn.policy import ConditionalPolicy
-from epgfn.train import TrainConfig, train_policy
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.policy import ConditionalPolicy
+from rsgfn.train import TrainConfig, train_policy
+from rsgfn.worlds import WorldConfig, sample_world
 
 OUT = "tests/data/w31_golden.npz"
 

@@ -20,7 +20,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 
-from epgfn.worlds import WorldConfig, hardness_report, is_hard, make_world
+from rsgfn.worlds import WorldConfig, hardness_report, is_hard, make_world
 
 # probe -> (threshold attr or value, direction) resolved per case in
 # `criteria`; kept in one place so the printout names every check the

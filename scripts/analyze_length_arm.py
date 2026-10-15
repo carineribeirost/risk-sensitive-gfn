@@ -50,8 +50,8 @@ import pathlib
 
 import numpy as np
 
-from epgfn.runio import unique_run_dir
-from epgfn.stats import (cluster_bootstrap_ci, cluster_permutation_test,
+from rsgfn.runio import unique_run_dir
+from rsgfn.stats import (cluster_bootstrap_ci, cluster_permutation_test,
                          holm, paired_sign_permutation)
 
 O2_LINE = 3.0

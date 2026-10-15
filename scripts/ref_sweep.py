@@ -2,7 +2,7 @@
 
 The held-out L1 endpoint is normalised by a Monte-Carlo reference floor
 whose sample count is a free choice, so it needs a sensitivity check.
-This reproduces the stored estimator exactly (`epgfn.target.mc_floor`,
+This reproduces the stored estimator exactly (`rsgfn.target.mc_floor`,
 20 repetitions, averaged over the 243 held-out conditions, one RNG
 threaded across conditions and seeded at the world seed) and sweeps n.
 
@@ -16,10 +16,10 @@ import time
 
 import numpy as np
 
-from epgfn.cases import target_for
-from epgfn.target import mc_floor
-from epgfn.train import ranges_for
-from epgfn.worlds import WorldConfig, make_world
+from rsgfn.cases import target_for
+from rsgfn.target import mc_floor
+from rsgfn.train import ranges_for
+from rsgfn.worlds import WorldConfig, make_world
 
 # The gate-accepted world seeds the oracle-gap batteries used, per case.
 WORLDS = {"A": [0, 100003, 200006, 300009],

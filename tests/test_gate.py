@@ -3,9 +3,9 @@ per seed (same seed chain), record the probe values, and mark rows."""
 
 import numpy as np
 
-from epgfn.o1 import run_o1
-from epgfn.o3 import run_o3
-from epgfn.worlds import WorldConfig, make_world, sample_world
+from rsgfn.o1 import run_o1
+from rsgfn.o3 import run_o3
+from rsgfn.worlds import WorldConfig, make_world, sample_world
 
 CFG = WorldConfig(H=12)
 

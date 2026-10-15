@@ -8,17 +8,17 @@ against exact targets.
 
 | module | contents |
 |---|---|
-| `epgfn/risk.py` | CVaR⁻/CVaR⁺ (exact split-mass), KL-DRO duals, nested & flattened composition |
-| `epgfn/worlds.py` | grid, smooth score geometries, weights, `g(x)`, faithful-hardness gate |
-| `epgfn/cases.py` | cases A–D, floor/veto/ε, `log R`, exact `p*` per condition |
-| `epgfn/conditions.py` | condition vector `c`, ranges, held-out grid, network features |
-| `epgfn/target.py` | `p*`, TV/L1, Monte-Carlo finite-sample floor |
-| `epgfn/policy.py` | conditional policy (FiLM MLP), `log Z(c)` head, exact density enumeration |
-| `epgfn/train.py` | trajectory-balance training, held-out exclusion, exact evaluation |
-| `epgfn/o1.py`, `scripts/run_o1.py` | O1 sweep driver (vs Boltzmann and worst-case poles) |
-| `epgfn/o3.py`, `scripts/run_o3.py` | O3 extension: joint-satisfaction utility + stress test vs both poles |
+| `rsgfn/risk.py` | CVaR⁻/CVaR⁺ (exact split-mass), KL-DRO duals, nested & flattened composition |
+| `rsgfn/worlds.py` | grid, smooth score geometries, weights, `g(x)`, faithful-hardness gate |
+| `rsgfn/cases.py` | cases A–D, floor/veto/ε, `log R`, exact `p*` per condition |
+| `rsgfn/conditions.py` | condition vector `c`, ranges, held-out grid, network features |
+| `rsgfn/target.py` | `p*`, TV/L1, Monte-Carlo finite-sample floor |
+| `rsgfn/policy.py` | conditional policy (FiLM MLP), `log Z(c)` head, exact density enumeration |
+| `rsgfn/train.py` | trajectory-balance training, held-out exclusion, exact evaluation |
+| `rsgfn/o1.py`, `scripts/run_o1.py` | O1 sweep driver (vs Boltzmann and worst-case poles) |
+| `rsgfn/o3.py`, `scripts/run_o3.py` | O3 extension: joint-satisfaction utility + stress test vs both poles |
 | `scripts/run_o2.py` | O2 driver: (world, seed) grid, floor-referenced L1, bootstrap CI |
-| `epgfn/stats.py` | cluster bootstrap, cluster permutation test, TOST |
+| `rsgfn/stats.py` | cluster bootstrap, cluster permutation test, TOST |
 
 ## Setup
 

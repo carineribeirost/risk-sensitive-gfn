@@ -26,10 +26,10 @@ import numpy as np  # noqa: E402
 import scienceplots  # noqa: F401, E402
 from matplotlib.colors import LogNorm  # noqa: E402
 
-from epgfn.cases import log_reward  # noqa: E402
-from epgfn.target import l1, p_star  # noqa: E402
-from epgfn.w33 import ARMS, fixed_condition, mode_indices  # noqa: E402
-from epgfn.worlds import WorldConfig, make_world  # noqa: E402
+from rsgfn.cases import log_reward  # noqa: E402
+from rsgfn.target import l1, p_star  # noqa: E402
+from rsgfn.w33 import ARMS, fixed_condition, mode_indices  # noqa: E402
+from rsgfn.worlds import WorldConfig, make_world  # noqa: E402
 
 CASE_TITLE = {"A": "smooth", "B": "floor", "C": "veto", "D": "nested"}
 DEFAULT_WORLD = {"A": 0, "B": 0, "C": 0, "D": 59}

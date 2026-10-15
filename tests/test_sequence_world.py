@@ -4,10 +4,10 @@ sparsity knob, and end-to-end compatibility with the exact pipeline."""
 import numpy as np
 import pytest
 
-from epgfn.cases import target_for
-from epgfn.conditions import Condition, tied_risk
-from epgfn.train import TrainConfig, train_policy
-from epgfn.worlds import (WorldConfig, make_world, sample_world,
+from rsgfn.cases import target_for
+from rsgfn.conditions import Condition, tied_risk
+from rsgfn.train import TrainConfig, train_policy
+from rsgfn.worlds import (WorldConfig, make_world, sample_world,
                           sequence_field)
 
 

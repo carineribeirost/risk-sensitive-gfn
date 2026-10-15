@@ -3,9 +3,9 @@ sign-flip permutation test."""
 
 import numpy as np
 
-from epgfn.o3 import contamination_metrics, realized_utility, run_o3
-from epgfn.stats import paired_sign_permutation
-from epgfn.worlds import CASES, WorldConfig, make_world
+from rsgfn.o3 import contamination_metrics, realized_utility, run_o3
+from rsgfn.stats import paired_sign_permutation
+from rsgfn.worlds import CASES, WorldConfig, make_world
 
 CFG = WorldConfig(H=12)
 

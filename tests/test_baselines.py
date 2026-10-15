@@ -2,11 +2,11 @@
 import numpy as np
 import pytest
 
-from epgfn.baselines import (KINDS, _desirability, _wgeo, psi_baseline,
+from rsgfn.baselines import (KINDS, _desirability, _wgeo, psi_baseline,
                              target_baseline)
-from epgfn.cases import psi_worst_case
-from epgfn.conditions import Condition, tied_risk
-from epgfn.worlds import WorldConfig, make_world
+from rsgfn.cases import psi_worst_case
+from rsgfn.conditions import Condition, tied_risk
+from rsgfn.worlds import WorldConfig, make_world
 
 CFG = WorldConfig(H=8, d=2, geometry="grid")
 CASES = ("A", "B", "C", "D")

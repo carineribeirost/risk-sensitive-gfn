@@ -22,13 +22,13 @@ import json
 
 import numpy as np
 
-from epgfn.cases import target_for
-from epgfn.conditions import Condition, RiskD
-from epgfn.o1 import _shared_family, o1_separability
-from epgfn.runio import unique_run_dir
-from epgfn.stats import cluster_bootstrap_ci
-from epgfn.target import tv
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.cases import target_for
+from rsgfn.conditions import Condition, RiskD
+from rsgfn.o1 import _shared_family, o1_separability
+from rsgfn.runio import unique_run_dir
+from rsgfn.stats import cluster_bootstrap_ci
+from rsgfn.target import tv
+from rsgfn.worlds import WorldConfig, sample_world
 
 
 def main() -> None:

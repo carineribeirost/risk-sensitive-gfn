@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from epgfn.stats import (cluster_bootstrap_ci, cluster_permutation_test,
+from rsgfn.stats import (cluster_bootstrap_ci, cluster_permutation_test,
                          tost)
 
 

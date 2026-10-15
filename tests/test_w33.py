@@ -5,11 +5,11 @@ import numpy as np
 import pytest
 import torch
 
-from epgfn.train import TrainConfig
-from epgfn.w33 import (ARMS, eps_shell, expected_coverage,
+from rsgfn.train import TrainConfig
+from rsgfn.w33 import (ARMS, eps_shell, expected_coverage,
                        fixed_condition, infonce, mode_indices, run_arm,
                        samples_to_frac)
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.worlds import WorldConfig, sample_world
 
 CFG_NET = dict(dim=32, depth=2, cond_dim=16, x1_dim=8)
 
@@ -250,7 +250,7 @@ def test_teacher_c_changes_the_run(world):
 # --- live modes: satisfaction and reward must agree -----------------------
 
 def _mk(case, sp=4.0, seed=0):
-    from epgfn.worlds import WorldConfig, make_world
+    from rsgfn.worlds import WorldConfig, make_world
     return make_world(case, WorldConfig(H=4, d=6, geometry="sequence",
                                         sparsity=sp), seed)
 
@@ -259,8 +259,8 @@ def _mk(case, sp=4.0, seed=0):
 def test_non_subtracting_cases_have_every_mode_live(case):
     """A, C and D only aggregate, so a satisfying state cannot have a
     negative composed reward and the live restriction is the identity."""
-    from epgfn.cases import EPS_REWARD, log_reward
-    from epgfn.w33 import mode_indices
+    from rsgfn.cases import EPS_REWARD, log_reward
+    from rsgfn.w33 import mode_indices
     w = _mk(case)
     c = fixed_condition(w)
     im = np.zeros(w.n_points, bool)
@@ -273,8 +273,8 @@ def test_non_subtracting_cases_have_every_mode_live(case):
 def test_case_B_can_have_dead_modes():
     """Only B subtracts, so only B can satisfy on scores and clamp on
     reward. If this ever stops holding the metric needs revisiting."""
-    from epgfn.cases import EPS_REWARD, log_reward
-    from epgfn.w33 import mode_indices
+    from rsgfn.cases import EPS_REWARD, log_reward
+    from rsgfn.w33 import mode_indices
     w = _mk("B")
     c = fixed_condition(w)
     im = np.zeros(w.n_points, bool)

@@ -32,11 +32,11 @@ import numpy as np  # noqa: E402
 import scienceplots  # noqa: E402,F401
 from matplotlib.colors import LogNorm  # noqa: E402
 
-from epgfn.cases import log_reward, target_for  # noqa: E402
-from epgfn.target import l1, mc_floor  # noqa: E402
-from epgfn.train import TrainConfig, default_device  # noqa: E402
-from epgfn.w33 import fixed_condition, run_arm  # noqa: E402
-from epgfn.worlds import WorldConfig, sample_world  # noqa: E402
+from rsgfn.cases import log_reward, target_for  # noqa: E402
+from rsgfn.target import l1, mc_floor  # noqa: E402
+from rsgfn.train import TrainConfig, default_device  # noqa: E402
+from rsgfn.w33 import fixed_condition, run_arm  # noqa: E402
+from rsgfn.worlds import WorldConfig, sample_world  # noqa: E402
 
 plt.style.use(["science", "bright", "no-latex"])
 plt.rcParams.update({"font.size": 9})

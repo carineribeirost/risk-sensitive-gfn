@@ -3,10 +3,10 @@
 import numpy as np
 import pytest
 
-from epgfn.cases import EPS_REWARD, log_reward, psi_and_masks, target_for
-from epgfn.conditions import Condition, ConditionRanges, tied_risk
-from epgfn.target import mc_floor, p_star, tv
-from epgfn.worlds import (CASES, WorldConfig, grid_coords, is_hard,
+from rsgfn.cases import EPS_REWARD, log_reward, psi_and_masks, target_for
+from rsgfn.conditions import Condition, ConditionRanges, tied_risk
+from rsgfn.target import mc_floor, p_star, tv
+from rsgfn.worlds import (CASES, WorldConfig, grid_coords, is_hard,
                           make_world, sample_world, smooth_field)
 
 CFG = WorldConfig(H=12)

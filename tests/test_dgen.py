@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 import torch
 
-from epgfn.cases import target_for
-from epgfn.policy import ConditionalPolicy
-from epgfn.train import TrainConfig, train_policy
-from epgfn.worlds import WorldConfig, grid_coords, make_world, sample_world
+from rsgfn.cases import target_for
+from rsgfn.policy import ConditionalPolicy
+from rsgfn.train import TrainConfig, train_policy
+from rsgfn.worlds import WorldConfig, grid_coords, make_world, sample_world
 
 
 def test_grid_coords_canonical_order_d3():
@@ -95,7 +95,7 @@ def test_exact_kl_smoke_d3():
 def test_target_normalized_d3():
     """target_for produces a normalized probability distribution over the full
     d=3 grid."""
-    from epgfn.conditions import Condition, tied_risk
+    from rsgfn.conditions import Condition, tied_risk
     world, _ = sample_world("B", WorldConfig(H=5, d=3), seed=0)
     p = target_for(world, Condition(2.0, 0.3, tied_risk("B", 0.5, 0.5)))
     assert p.shape == (125,)

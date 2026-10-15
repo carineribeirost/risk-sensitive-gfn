@@ -20,13 +20,13 @@ import pathlib
 import numpy as np
 import torch
 
-from epgfn.cases import log_reward
-from epgfn.runio import Progress, unique_run_dir
-from epgfn.stats import cluster_bootstrap_ci
-from epgfn.target import p_star
-from epgfn.train import TrainConfig, default_device
-from epgfn.w33 import ARMS, fixed_condition, run_arm, samples_to_frac
-from epgfn.worlds import WorldConfig, is_hard, make_world, sample_world
+from rsgfn.cases import log_reward
+from rsgfn.runio import Progress, unique_run_dir
+from rsgfn.stats import cluster_bootstrap_ci
+from rsgfn.target import p_star
+from rsgfn.train import TrainConfig, default_device
+from rsgfn.w33 import ARMS, fixed_condition, run_arm, samples_to_frac
+from rsgfn.worlds import WorldConfig, is_hard, make_world, sample_world
 
 
 def main() -> None:
@@ -105,7 +105,7 @@ def main() -> None:
                     "verification IS the hardness probe.")
     ap.add_argument("--teacher-c", type=float, default=19.0,
                     help="weight on undersampled states in the teacher "
-                    "reward, eq. (5) of epgfn.w33's docstring; 19 is "
+                    "reward, eq. (5) of rsgfn.w33's docstring; 19 is "
                     "the cited paper's value for every task, 0 "
                     "reduces to the bare eq. (4)")
     ap.add_argument("--teacher-alpha", type=float, default=0.0,

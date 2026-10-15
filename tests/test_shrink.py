@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from epgfn.conditions import ConditionRanges
-from epgfn.train import TrainConfig, ranges_for, train_policy
-from epgfn.worlds import WorldConfig, make_world
+from rsgfn.conditions import ConditionRanges
+from rsgfn.train import TrainConfig, ranges_for, train_policy
+from rsgfn.worlds import WorldConfig, make_world
 
 
 def test_shrink_geometry():

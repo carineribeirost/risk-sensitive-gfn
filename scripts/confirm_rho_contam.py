@@ -22,7 +22,7 @@ Pre-registered analysis (this script):
   PRIMARY (confirmatory): case B, per-world mean paired delta of
   contam_worst for rho 0 -> 0.5 at fixed beta, rows at t = t*,
   target kind "risk" only; one-sample sign-flip permutation on the
-  per-world means (epgfn.stats.paired_sign_permutation, default
+  per-world means (rsgfn.stats.paired_sign_permutation, default
   n_perm/seed); confirmed iff p < 0.05 and mean > 0.
   SECONDARY (reported, not gated): the same delta for stress_p05;
   and cases A, C, D on both metrics (uniform case coverage).
@@ -38,7 +38,7 @@ import pathlib
 import sys
 from collections import defaultdict
 
-from epgfn.stats import paired_sign_permutation
+from rsgfn.stats import paired_sign_permutation
 
 RHO_LO, RHO_HI = 0.0, 0.5   # registered pair
 

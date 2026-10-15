@@ -18,14 +18,14 @@ import json
 import numpy as np
 import torch
 
-from epgfn.cases import target_for
-from epgfn.conditions import expert_subset
-from epgfn.runio import unique_run_dir
-from epgfn.stats import cluster_bootstrap_ci, cluster_permutation_test
-from epgfn.target import l1
-from epgfn.train import (TrainConfig, default_device, ranges_for,
+from rsgfn.cases import target_for
+from rsgfn.conditions import expert_subset
+from rsgfn.runio import unique_run_dir
+from rsgfn.stats import cluster_bootstrap_ci, cluster_permutation_test
+from rsgfn.target import l1
+from rsgfn.train import (TrainConfig, default_device, ranges_for,
                          train_expert, train_policy)
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.worlds import WorldConfig, sample_world
 
 
 def main() -> None:

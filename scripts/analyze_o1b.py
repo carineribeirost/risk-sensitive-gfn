@@ -22,7 +22,7 @@ import pathlib
 
 import numpy as np
 
-from epgfn.stats import cluster_bootstrap_ci
+from rsgfn.stats import cluster_bootstrap_ci
 
 MARGIN = 0.05  # fixed separability margin; do not retune
 

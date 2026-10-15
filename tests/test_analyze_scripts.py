@@ -49,8 +49,8 @@ def test_o1b_separability_summary_endpoint():
 def test_o3_asym_matched_pairs_and_confirmatory():
     """matched_pairs pairs rho values by kappa asymmetry, and asym_confirmatory
     produces valid confirmatory statistics."""
-    from epgfn.o3 import run_o3
-    from epgfn.worlds import WorldConfig
+    from rsgfn.o3 import run_o3
+    from rsgfn.worlds import WorldConfig
     a = load_script("analyze_o3_asym")
     rows, meta = run_o3("B", WorldConfig(H=8), [0, 1], n_stress=32,
                         kappa_range=(8, 60))

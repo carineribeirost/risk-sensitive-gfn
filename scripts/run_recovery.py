@@ -24,14 +24,14 @@ import dataclasses
 import json
 from concurrent.futures import ProcessPoolExecutor
 
-from epgfn.cases import target_for
-from epgfn.conditions import Condition, tied_risk
-from epgfn.corrupt import MODELS, corrupt_world, crude_world
-from epgfn.o3 import challenge_level, satisfaction_mask
-from epgfn.risk import BALL_RHO_GRIDS, GEOMETRIES, winsorize_scores
-from epgfn.runio import Progress, unique_run_dir
-from epgfn.target import tv
-from epgfn.worlds import WorldConfig, sample_world
+from rsgfn.cases import target_for
+from rsgfn.conditions import Condition, tied_risk
+from rsgfn.corrupt import MODELS, corrupt_world, crude_world
+from rsgfn.o3 import challenge_level, satisfaction_mask
+from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES, winsorize_scores
+from rsgfn.runio import Progress, unique_run_dir
+from rsgfn.target import tv
+from rsgfn.worlds import WorldConfig, sample_world
 
 SIGMAS = (0.0, 0.05, 0.1, 0.15, 0.2)   # fixed σ grid
 BETA_GRID = (0.15, 0.3, 0.6, 1.0)      # o3 defaults
