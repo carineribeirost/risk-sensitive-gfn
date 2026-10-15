@@ -1,23 +1,23 @@
 """Mechanical endpoint verdicts: turn run-dir CSVs/summaries into
 PASS/FAIL lines against the fixed margins, so no later session
 has to exercise judgment. Margins are frozen:
-separability/hardness 0.05; O2 amortization ≤ 3× MC floor; oracle
+separability/hardness 0.05; amortization amortization ≤ 3× MC floor; oracle
 reference 1.2× floor; TOST 10% relative. Holm (test block only) runs
-across the secondary tier: O1b separability per case + O2 floor-ratio
-per case; the O3 primary endpoint stands alone.
+across the secondary tier: family separability separability per case + amortization floor-ratio
+per case; the utility primary endpoint stands alone.
 
 Operational p-value forms (documented here, not new protocol):
-- O1b: cluster bootstrap of the median-of-max separability over
+- family separability: cluster bootstrap of the median-of-max separability over
   worlds; p = share of resamples below the 0.05 margin.
-- O2: cluster bootstrap of mean L1 and mean floor over worlds;
+- amortization: cluster bootstrap of mean L1 and mean floor over worlds;
   p = share of resamples with ratio > 3.
 
 Usage:
-    python scripts/check_endpoints.py --o1-dir results/test-o1/... \
-        --o2-dirs results/test-o2/... [...] \
+    python scripts/check_endpoints.py --separability-dir results/test-separability/... \
+        --amortization-dirs results/test-amortization/... [...] \
         --oracle-dirs results/oracle-gap-d3/... [...] \
-        --o3-asym results/test-o3/.../o3_asym_analysis.json \
-        --w33-csv results/w33/.../w33_runs.csv \
+        --utility-asym results/test-utility/.../utility_asym_analysis.json \
+        --exploration-csv results/exploration/.../exploration_runs.csv \
         [--holm]   # apply Holm across the secondary tier (test block)
 """
 
@@ -32,14 +32,14 @@ import numpy as np
 from rsgfn.stats import cluster_permutation_test, holm
 
 SEP_MARGIN = 0.05
-O2_LINE = 3.0
+AMORTIZATION_LINE = 3.0
 ORACLE_LINE = 1.2
 
 
 def _median_of_max_boot(maxes: dict, margin: float, n_boot: int = 2000,
                         seed: int = 0) -> dict:
     """Cluster bootstrap of the median-of-max separability statistic
-    over worlds, shared by check_o1_sep and check_rho_out_sep (which
+    over worlds, shared by check_separability_sep and check_rho_out_sep (which
     differ only in which CSV/column feeds `maxes`).
 
     Args:
@@ -64,12 +64,12 @@ def _median_of_max_boot(maxes: dict, margin: float, n_boot: int = 2000,
             "pass": mom >= margin, "boot_p": p, "n_worlds": len(maxes)}
 
 
-def check_o1_sep(o1_dir: str) -> dict:
-    """Compute the O1b separability PASS/FAIL verdict per case from
-    o1_case*_sep.csv files.
+def check_separability_sep(separability_dir: str) -> dict:
+    """Compute the family separability separability PASS/FAIL verdict per case from
+    separability_case*_sep.csv files.
 
     Args:
-        o1_dir: Directory tree to search for o1_case?_sep.csv files
+        separability_dir: Directory tree to search for separability_case?_sep.csv files
             (searched recursively).
 
     Returns:
@@ -77,10 +77,10 @@ def check_o1_sep(o1_dir: str) -> dict:
         verdict, the cluster-bootstrap p-value, and the world count.
     """
     out = {}
-    for path in sorted(glob.glob(str(pathlib.Path(o1_dir)
-                                     / "**" / "o1_case?_sep.csv"),
+    for path in sorted(glob.glob(str(pathlib.Path(separability_dir)
+                                     / "**" / "separability_case?_sep.csv"),
                                  recursive=True)):
-        case = pathlib.Path(path).stem[len("o1_case")]
+        case = pathlib.Path(path).stem[len("separability_case")]
         per_world: dict = {}
         with open(path) as fh:
             for r in csv.DictReader(fh):
@@ -92,16 +92,16 @@ def check_o1_sep(o1_dir: str) -> dict:
     return out
 
 
-def check_rho_out_sep(o1_dir: str) -> dict:
+def check_rho_out_sep(separability_dir: str) -> dict:
     """ρ_out liveness: median-of-max tv_to_shared_rho_out over dev
     worlds ≥ the separability margin, same bootstrap form as
-    check_o1_sep. Reads the separate o1_case?_rhoout.csv files (case D
+    check_separability_sep. Reads the separate separability_case?_rhoout.csv files (case D
     in practice); an empty dict means the probe was not run."""
     out = {}
-    for path in sorted(glob.glob(str(pathlib.Path(o1_dir)
-                                     / "**" / "o1_case?_rhoout.csv"),
+    for path in sorted(glob.glob(str(pathlib.Path(separability_dir)
+                                     / "**" / "separability_case?_rhoout.csv"),
                                  recursive=True)):
-        case = pathlib.Path(path).stem[len("o1_case")]
+        case = pathlib.Path(path).stem[len("separability_case")]
         per_world: dict = {}
         with open(path) as fh:
             for r in csv.DictReader(fh):
@@ -112,12 +112,12 @@ def check_rho_out_sep(o1_dir: str) -> dict:
     return out
 
 
-def check_o2(o2_dir: str) -> dict:
-    """Compute the O2 amortization PASS/FAIL verdict per case from
-    o2_case?.csv files.
+def check_amortization(amortization_dir: str) -> dict:
+    """Compute the amortization amortization PASS/FAIL verdict per case from
+    amortization_case?.csv files.
 
     Args:
-        o2_dir: Directory tree to search for o2_case?.csv files
+        amortization_dir: Directory tree to search for amortization_case?.csv files
             (searched recursively).
 
     Returns:
@@ -125,8 +125,8 @@ def check_o2(o2_dir: str) -> dict:
         95% CI, the 3x-line verdict, and the bootstrap p-value.
     """
     out = {}
-    for path in sorted(glob.glob(str(pathlib.Path(o2_dir)
-                                     / "**" / "o2_case?.csv"),
+    for path in sorted(glob.glob(str(pathlib.Path(amortization_dir)
+                                     / "**" / "amortization_case?.csv"),
                                  recursive=True)):
         case = pathlib.Path(path).stem[-1]
         l1s: dict = {}
@@ -147,15 +147,15 @@ def check_o2(o2_dir: str) -> dict:
             num = np.mean([np.mean(l1s[k]) for k in pick])
             den = np.mean([np.mean(floors[k]) for k in pick])
             ratios.append(num / den)
-            fails += num / den > O2_LINE
+            fails += num / den > AMORTIZATION_LINE
         ratio = (np.mean([np.mean(v) for v in l1s.values()])
                  / np.mean([np.mean(v) for v in floors.values()]))
         lo, hi = np.quantile(ratios, [0.025, 0.975])
         out[case] = {"ratio": float(ratio), "ci95": [float(lo),
                                                      float(hi)],
-                     "line": O2_LINE, "pass": ratio <= O2_LINE,
-                     "ci_clear": hi <= O2_LINE,
-                     # +1/(N+1) smoothing, same convention as check_o1_sep
+                     "line": AMORTIZATION_LINE, "pass": ratio <= AMORTIZATION_LINE,
+                     "ci_clear": hi <= AMORTIZATION_LINE,
+                     # +1/(N+1) smoothing, same convention as check_separability_sep
                      "boot_p": (fails + 1) / 2001,
                      "n_worlds": len(keys)}
     return out
@@ -190,12 +190,12 @@ def check_oracle(oracle_dir: str) -> dict:
     return out
 
 
-def check_o3_asym(path: str) -> dict:
-    """Extract the O3 primary endpoint verdict from an
-    o3_asym_analysis.json summary.
+def check_utility_asym(path: str) -> dict:
+    """Extract the utility primary endpoint verdict from an
+    utility_asym_analysis.json summary.
 
     Args:
-        path: Path to the JSON file written by analyze_o3_asym.py.
+        path: Path to the JSON file written by analyze_utility_asym.py.
 
     Returns:
         dict: {"present": False} if case B's confirmatory block is
@@ -214,12 +214,12 @@ def check_o3_asym(path: str) -> dict:
         c = conf["delta_contam_worst"]
         out["contam_p"] = c["p_value"]
         out["contam_pass"] = c["mean"] > 0 and c["p_value"] < 0.05
-    if "eff_ratio_tost" in conf:  # key as analyze_o3_asym writes it
+    if "eff_ratio_tost" in conf:  # key as analyze_utility_asym writes it
         out["tost_equivalent"] = conf["eff_ratio_tost"].get("equivalent")
     return out
 
 
-def check_w33(csv_path: str) -> dict:
+def check_exploration(csv_path: str) -> dict:
     """Fixed reproduction criteria R1–R3, evaluated mechanically."""
     rows = list(csv.DictReader(open(csv_path)))
     for r in rows:
@@ -321,42 +321,42 @@ def main() -> None:
     apply Holm correction across the secondary tier, print the JSON
     report, and print a human-readable summary."""
     ap = argparse.ArgumentParser()
-    ap.add_argument("--o1-dir", default=None)
-    ap.add_argument("--o2-dirs", nargs="+", default=[])
+    ap.add_argument("--separability-dir", default=None)
+    ap.add_argument("--amortization-dirs", nargs="+", default=[])
     ap.add_argument("--oracle-dirs", nargs="+", default=[])
-    ap.add_argument("--o3-asym", default=None)
-    ap.add_argument("--w33-csv", default=None)
+    ap.add_argument("--utility-asym", default=None)
+    ap.add_argument("--exploration-csv", default=None)
     ap.add_argument("--recovery-csv", default=None,
-                    help="paper 2: recovery.csv from run_recovery.py")
+                    help="paper 2: recovery.csv from run_corruption_recovery.py")
     ap.add_argument("--holm", action="store_true",
                     help="Holm across the secondary tier (test block)")
     ap.add_argument("--out", default=None, help="JSON output path")
     args = ap.parse_args()
 
     report: dict = {}
-    if args.o1_dir:
-        report["o1b_separability"] = check_o1_sep(args.o1_dir)
-        ro = check_rho_out_sep(args.o1_dir)  # auto-detected
+    if args.separability_dir:
+        report["family_separability"] = check_separability_sep(args.separability_dir)
+        ro = check_rho_out_sep(args.separability_dir)  # auto-detected
         if ro:
             report["f1_rho_out_liveness"] = ro
-    for d in args.o2_dirs:
-        report.setdefault("o2", {})[d] = check_o2(d)
+    for d in args.amortization_dirs:
+        report.setdefault("amortization", {})[d] = check_amortization(d)
     for d in args.oracle_dirs:
         report.setdefault("oracle", {})[d] = check_oracle(d)
-    if args.o3_asym:
-        report["o3_primary"] = check_o3_asym(args.o3_asym)
-    if args.w33_csv:
-        report["w33_reproduction"] = check_w33(args.w33_csv)
+    if args.utility_asym:
+        report["utility_primary"] = check_utility_asym(args.utility_asym)
+    if args.exploration_csv:
+        report["exploration_reproduction"] = check_exploration(args.exploration_csv)
     if args.recovery_csv:
         report["p2_recovery"] = check_recovery(args.recovery_csv)
 
     if args.holm:
         fam = {}
-        for case, r in report.get("o1b_separability", {}).items():
-            fam[f"o1b_{case}"] = r["boot_p"]
-        for d, cases in report.get("o2", {}).items():
+        for case, r in report.get("family_separability", {}).items():
+            fam[f"family_separability_{case}"] = r["boot_p"]
+        for d, cases in report.get("amortization", {}).items():
             for case, r in cases.items():
-                fam[f"o2_{case}"] = r["boot_p"]
+                fam[f"amortization_{case}"] = r["boot_p"]
         if fam:
             report["holm_secondary_tier"] = holm(fam)
 

@@ -1,4 +1,4 @@
-"""O3 (extension beyond O1/O2): is the risk-sensitive family
+"""Utility (extension beyond separability/amortization): is the risk-sensitive family
 *better* than its two poles, Boltzmann (risk-off) and pure worst-case,
 at the declared utility: generating objects that jointly satisfy ALL
 active states and the case's structural conditions?
@@ -207,7 +207,7 @@ def contamination_metrics(world: World, p: np.ndarray,
             "contam_state": arg_state, "contam_eps": float(eps)}
 
 
-def run_o3(case: str, cfg: WorldConfig, world_seeds,
+def run_utility(case: str, cfg: WorldConfig, world_seeds,
            beta_grid=None, rho_grid=None,
            t_levels=(0.25, 0.35, 0.45), beta_t: float = 4.0,
            w_g: float = 0.3, n_stress: int = 200,

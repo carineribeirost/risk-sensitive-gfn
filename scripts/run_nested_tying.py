@@ -3,17 +3,17 @@ misspecification arm. Reserved for the TEST block; dev runs are
 sanity checks only.
 
 Three families, all priced exactly against the tied single-pair family
-(`o1._shared_family`):
+(`separability._shared_family`):
 - profile-scale: RiskD(beta_in, tuple(s * rel_profile), 0.5) over an
   s-grid: one scalar dial aimed by the world's TRUE profile;
 - misspec: same, but the profile rolled by 1 (np.roll), aiming the
   scalar dial at the WRONG origins; measures the cost of a wrong prior;
-- one-hot: the per-origin probes from o1_separability (the full
+- one-hot: the per-origin probes from target_separability (the full
   family's own separability rows), for comparison.
 
 Usage:
-    python scripts/run_dtying.py --worlds 4 --world-seed0 0 --H 32 \
-        --out results/dtying
+    python scripts/run_nested_tying.py --worlds 4 --world-seed0 0 --H 32 \
+        --out results/nested_tying
 """
 
 import argparse
@@ -24,7 +24,7 @@ import numpy as np
 
 from rsgfn.cases import target_for
 from rsgfn.conditions import Condition, RiskD
-from rsgfn.o1 import _shared_family, o1_separability
+from rsgfn.separability import _shared_family, target_separability
 from rsgfn.runio import unique_run_dir
 from rsgfn.stats import cluster_bootstrap_ci
 from rsgfn.target import tv
@@ -37,9 +37,9 @@ def main() -> None:
     Parses CLI args, and for each of --worlds worlds prices the
     profile-scale, misspecified-profile, and one-hot families against
     the tied shared family, writing per-row results to
-    `dtying_caseD.csv` and a cluster-bootstrap summary (median/mean of
+    `nested_tying_caseD.csv` and a cluster-bootstrap summary (median/mean of
     the per-world max TV, by tying family) to
-    `dtying_caseD_summary.json`.
+    `nested_tying_caseD_summary.json`.
     """
     ap = argparse.ArgumentParser()
     ap.add_argument("--worlds", type=int, default=4)
@@ -47,7 +47,7 @@ def main() -> None:
     ap.add_argument("--H", type=int, default=32)
     ap.add_argument("--beta-t", type=float, default=4.0)
     ap.add_argument("--w-g", type=float, default=0.3)
-    ap.add_argument("--out", default="results/dtying")
+    ap.add_argument("--out", default="results/nested_tying")
     args = ap.parse_args()
 
     out = unique_run_dir(args.out, args)
@@ -60,7 +60,7 @@ def main() -> None:
               "tv_to_shared"]
     rows = []
     groups = {}  # tying -> {world: [tv, ...]}
-    with open(out / "dtying_caseD.csv", "w", newline="") as fh:
+    with open(out / "nested_tying_caseD.csv", "w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields)
         writer.writeheader()
         fh.flush()
@@ -87,7 +87,7 @@ def main() -> None:
                     fh.flush()
                     groups.setdefault(tying, {}).setdefault(
                         world.seed, []).append(d)
-            for r in o1_separability(world, beta_grid, rho_grid,
+            for r in target_separability(world, beta_grid, rho_grid,
                                      args.beta_t, args.w_g):
                 row = {"world_seed": world.seed, "tying": "one_hot",
                        "s": None, "origin": r["origin"],
@@ -111,7 +111,7 @@ def main() -> None:
             "median_of_max": float(np.median([max(v)
                                               for v in g.values()])),
             "mean_of_max": pt, "ci_lo": lo, "ci_hi": hi}
-    with open(out / "dtying_caseD_summary.json", "w") as fh:
+    with open(out / "nested_tying_caseD_summary.json", "w") as fh:
         json.dump(summary, fh, indent=2)
     print(json.dumps(summary, indent=2))
 

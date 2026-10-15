@@ -61,7 +61,7 @@ import torch
 
 from .cases import EPS_REWARD, log_reward, log_reward_graded
 from .conditions import Condition, tied_risk
-from .o3 import challenge_level, satisfaction_mask
+from .utility import challenge_level, satisfaction_mask
 from .policy import ConditionalPolicy
 from .target import l1, p_star
 from .train import TrainConfig, make_policy_and_opt

@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from rsgfn.train import TrainConfig
-from rsgfn.w33 import (ARMS, eps_shell, expected_coverage,
+from rsgfn.exploration import (ARMS, eps_shell, expected_coverage,
                        fixed_condition, infonce, mode_indices, run_arm,
                        samples_to_frac)
 from rsgfn.worlds import WorldConfig, sample_world
@@ -260,7 +260,7 @@ def test_non_subtracting_cases_have_every_mode_live(case):
     """A, C and D only aggregate, so a satisfying state cannot have a
     negative composed reward and the live restriction is the identity."""
     from rsgfn.cases import EPS_REWARD, log_reward
-    from rsgfn.w33 import mode_indices
+    from rsgfn.exploration import mode_indices
     w = _mk(case)
     c = fixed_condition(w)
     im = np.zeros(w.n_points, bool)
@@ -274,7 +274,7 @@ def test_case_B_can_have_dead_modes():
     """Only B subtracts, so only B can satisfy on scores and clamp on
     reward. If this ever stops holding the metric needs revisiting."""
     from rsgfn.cases import EPS_REWARD, log_reward
-    from rsgfn.w33 import mode_indices
+    from rsgfn.exploration import mode_indices
     w = _mk("B")
     c = fixed_condition(w)
     im = np.zeros(w.n_points, bool)

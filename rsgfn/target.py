@@ -18,19 +18,19 @@ def p_star(log_reward: np.ndarray, beta_t: float) -> np.ndarray:
 
 
 def l1(p: np.ndarray, q: np.ndarray) -> float:
-    """L1 distance Σ|p − q| (O2 metric). Equals 2·TV."""
+    """L1 distance Σ|p − q| (amortization metric). Equals 2·TV."""
     return float(np.abs(p - q).sum())
 
 
 def tv(p: np.ndarray, q: np.ndarray) -> float:
-    """Total-variation distance (O1 metric)."""
+    """Total-variation distance (separability metric)."""
     return 0.5 * l1(p, q)
 
 
 def mc_floor(p: np.ndarray, n_samples: int, rng: np.random.Generator,
              n_reps: int = 20) -> float:
     """Finite-sample floor: mean L1 of an exact n-sample empirical
-    estimate of p against p (O2 reference)."""
+    estimate of p against p (amortization reference)."""
     dists = []
     for _ in range(n_reps):
         counts = rng.multinomial(n_samples, p)

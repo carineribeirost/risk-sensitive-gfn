@@ -1,5 +1,5 @@
 """w_g drowning-point marginal (operating manual §4/§5; exact, no
-training). For each world, sweep w_g and price the standard O1 risk
+training). For each world, sweep w_g and price the standard separability risk
 grid at that composition: the *drowning point* is the smallest w_g at
 which tv_on_off < the hardness margin for EVERY admissible risk cell;
 beyond it the auxiliary objective drowns Ψ and risk-sensitive
@@ -18,7 +18,7 @@ import json
 
 import numpy as np
 
-from rsgfn.o1 import o1_grid
+from rsgfn.separability import separability_grid
 from rsgfn.runio import unique_run_dir, write_csv
 from rsgfn.worlds import WorldConfig, sample_world
 
@@ -43,7 +43,7 @@ def drowning_point(maxes: dict[float, float], margin: float):
 def main() -> None:
     """Sweep w_g per world and locate the drowning point for each case.
 
-    Parses CLI args, prices the O1 risk grid at each --wg-grid value
+    Parses CLI args, prices the separability risk grid at each --wg-grid value
     for --worlds worlds per case, finds the smallest w_g beyond which
     the whole-grid max tv_on_off stays below --margin (the drowning
     point), and writes per-case CSVs plus a
@@ -80,7 +80,7 @@ def main() -> None:
             world, _ = sample_world(case, cfg, seed)
             maxes = {}
             for wg in args.wg_grid:
-                grid = o1_grid(world, beta_grid, rho_grid, w_g=float(wg))
+                grid = separability_grid(world, beta_grid, rho_grid, w_g=float(wg))
                 for r in grid:
                     r["in_family"] = wg <= WG_FAMILY_MAX
                 rows.extend(grid)

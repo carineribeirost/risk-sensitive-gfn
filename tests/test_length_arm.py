@@ -30,7 +30,7 @@ def _make_dir(tmp_path, name, loss, l1_of, cases=("A", "B"),
     with open(d / "args.json", "w") as fh:
         json.dump(dict(BASE, loss=loss), fh)
     for case in cases:
-        with open(d / "frag" / f"o2_case{case}.csv", "w",
+        with open(d / "frag" / f"amortization_case{case}.csv", "w",
                   newline="") as fh:
             w = csv.DictWriter(fh, fieldnames=[
                 "case", "world", "gate_attempts", "train_seed",

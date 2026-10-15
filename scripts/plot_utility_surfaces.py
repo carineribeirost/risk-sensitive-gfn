@@ -1,4 +1,4 @@
-"""o3 regime maps on the (rho, beta) plane, NLDL-sized.
+"""Utility regime maps on the (rho, beta) plane, NLDL-sized.
 
 The plane IS the Section-2 hierarchy: bottom-left cell = Boltzmann
 (level 0), left column = CVaR only (1), bottom row = KL-DRO only (2),
@@ -17,8 +17,8 @@ band, and the pre-named probe cell (beta 0.25, rho 0.5) as a star.
 Sized for the NLDL template (a4, 2.5cm margins -> 16cm text width,
 10pt): full-width figure* at 6.3in, 7-8pt type.
 
-Usage (--run defaults to the newest run under results/o3-pareto):
-    python scripts/plot_o3_surfaces.py --out results/figures
+Usage (--run defaults to the newest run under results/utility-pareto):
+    python scripts/plot_utility_surfaces.py --out results/figures
 """
 import argparse
 import csv
@@ -77,10 +77,10 @@ def num(x):
 
 
 def load_case(run, case):
-    """Load one case's o3 CSV and grid its risk-family metrics by (beta, rho).
+    """Load one case's utility CSV and grid its risk-family metrics by (beta, rho).
 
     Args:
-        run: directory containing `o3_case{case}.csv`.
+        run: directory containing `utility_case{case}.csv`.
         case: case letter ("A"-"D").
 
     Returns:
@@ -91,7 +91,7 @@ def load_case(run, case):
         metric)` averages `metric` over rows with the given `target`
         ("boltzmann" or "worst").
     """
-    rows = [r for r in csv.DictReader(open(run / f"o3_case{case}.csv"))
+    rows = [r for r in csv.DictReader(open(run / f"utility_case{case}.csv"))
             if r["t"] == r["t_star"]]
 
     def pole(target, metric):
@@ -173,35 +173,35 @@ def frac_pos(vals, x):
     return ia + (x - a) / (b - a) * (ib - ia)
 
 
-def latest_run(base="results/o3-pareto"):
-    """Find the most recently created o3-pareto run directory.
+def latest_run(base="results/utility-pareto"):
+    """Find the most recently created utility-pareto run directory.
 
     Args:
-        base: root directory to search for `*/*/o3_caseA.csv`.
+        base: root directory to search for `*/*/utility_caseA.csv`.
 
     Returns:
-        Path to the run directory containing the newest `o3_caseA.csv`.
+        Path to the run directory containing the newest `utility_caseA.csv`.
 
     Raises:
-        SystemExit: if no o3-pareto run is found under `base`.
+        SystemExit: if no utility-pareto run is found under `base`.
     """
-    runs = sorted(pathlib.Path(base).glob("*/*/o3_caseA.csv"))
+    runs = sorted(pathlib.Path(base).glob("*/*/utility_caseA.csv"))
     if not runs:
-        raise SystemExit(f"no o3-pareto runs under {base}")
+        raise SystemExit(f"no utility-pareto runs under {base}")
     return runs[-1].parent
 
 
 def main():
     """Render the four regime-map figures and save them.
 
-    Parses CLI args, loads all four cases' o3 CSVs (defaulting to the
-    newest run under results/o3-pareto), and writes one PNG+PDF pair
+    Parses CLI args, loads all four cases' utility CSVs (defaulting to the
+    newest run under results/utility-pareto), and writes one PNG+PDF pair
     per metric in FIGS to --out.
     """
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", default=None,
-                    help="o3-pareto run dir (default: newest under "
-                    "results/o3-pareto)")
+                    help="utility-pareto run dir (default: newest under "
+                    "results/utility-pareto)")
     ap.add_argument("--out", default="results/figures")
     args = ap.parse_args()
     run = pathlib.Path(args.run) if args.run else latest_run()
@@ -272,7 +272,7 @@ def main():
                        ncol=3, frameon=False,
                        bbox_to_anchor=(0.5, -0.005))
             fig.tight_layout(rect=[0, 0.07, 1, 0.97])
-            p = out / f"o3_regime_{metric}.png"
+            p = out / f"utility_regime_{metric}.png"
             fig.savefig(p, dpi=300)
             fig.savefig(p.with_suffix(".pdf"))
             plt.close(fig)

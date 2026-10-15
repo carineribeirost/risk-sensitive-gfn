@@ -1,11 +1,11 @@
-"""O2 experiment: train the conditional policy per
+"""Amortization experiment: train the conditional policy per
 (world, seed) pair, evaluate exact L1 on held-out conditions against
 the Monte-Carlo finite-sample floor, and report cluster-bootstrap CIs
 with worlds as the outer resampling unit.
 
 Usage:
-    python scripts/run_o2.py --case A --worlds 4 --seeds 3 --H 32 \
-        --steps 4000 --out results/o2
+    python scripts/run_amortization.py --case A --worlds 4 --seeds 3 --H 32 \
+        --steps 4000 --out results/amortization
 """
 
 import argparse
@@ -22,14 +22,14 @@ from rsgfn.worlds import WorldConfig, sample_world
 
 
 def main() -> None:
-    """Run the O2 train-and-evaluate experiment for one case.
+    """Run the amortization train-and-evaluate experiment for one case.
 
     Parses CLI args, and for each of --worlds worlds trains --seeds
     policies (canonical config, with any requested feature-axis
     ablations applied to the condition ranges), evaluating exact
     heldout L1 against the Monte-Carlo floor; writes per-run rows to
-    `o2_case{case}.csv` and a cluster-bootstrap summary to
-    `o2_case{case}_summary.json`.
+    `amortization_case{case}.csv` and a cluster-bootstrap summary to
+    `amortization_case{case}_summary.json`.
     """
     ap = argparse.ArgumentParser()
     ap.add_argument("--case", default="A")
@@ -78,7 +78,7 @@ def main() -> None:
                     help="case A with a guard: condition the "
                     "guard veto margin delta (+1 feature, 3-point "
                     "heldout axis)")
-    ap.add_argument("--out", default="results/o2",
+    ap.add_argument("--out", default="results/amortization",
                     help="base dir; each invocation gets a unique "
                     "timestamped subdirectory")
     args = ap.parse_args()
@@ -95,7 +95,7 @@ def main() -> None:
     fields = ["case", "world", "gate_attempts", "train_seed",
               "heldout_l1", "mc_floor_l1", "loss", "wall_s"]
     rows, groups = [], {}
-    with open(out / f"o2_case{args.case}.csv", "w", newline="") as fh:
+    with open(out / f"amortization_case{args.case}.csv", "w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields)
         writer.writeheader()
         fh.flush()
@@ -139,7 +139,7 @@ def main() -> None:
                "ci95": [lo, hi],
                "mc_floor_mean": float(np.mean([r["mc_floor_l1"]
                                                for r in rows]))}
-    with open(out / f"o2_case{args.case}_summary.json", "w") as fh:
+    with open(out / f"amortization_case{args.case}_summary.json", "w") as fh:
         json.dump(summary, fh, indent=2)
     print(json.dumps(summary, indent=2))
 

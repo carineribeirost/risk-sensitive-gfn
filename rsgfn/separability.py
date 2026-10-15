@@ -1,7 +1,7 @@
-"""O1 driver: map the region of condition space where the
+"""Separability driver: map the region of condition space where the
 exact target departs from its risk-off baseline (β_cvar = 1, ρ = 0),
 and (Case D) from the flattened single-level aggregation. Extended by
-O1b: the separability of the per-origin family from the
+family separability: the separability of the per-origin family from the
 tied single-pair family.
 
 Everything here is enumeration: deterministic per world, no training.
@@ -34,7 +34,7 @@ def _tied(world: World, beta_t, w_g, beta, rho,
                      _with_ball(tied_risk(world.case, beta, rho), ball))
 
 
-def o1_grid(world: World, beta_grid, rho_grid,
+def separability_grid(world: World, beta_grid, rho_grid,
             beta_t: float = 4.0, w_g: float = 0.3,
             ball: str = "kl") -> list[dict]:
     """TV(p*_on, p*_off) over the tied (β, ρ) grid; plus nested-vs-flat
@@ -80,10 +80,10 @@ def _shared_family(world: World, beta_grid, rho_grid, beta_t,
             for r in rho_grid]
 
 
-def o1_separability(world: World, beta_grid=None, rho_grid=None,
+def target_separability(world: World, beta_grid=None, rho_grid=None,
                     beta_t: float = 4.0, w_g: float = 0.3,
                     n_delta: int = 5, ball: str = "kl") -> list[dict]:
-    """O1b: for asymmetric per-origin conditions, the
+    """family separability: for asymmetric per-origin conditions, the
     distance to the closest member of the tied single-pair family,
     tv_to_shared = min over the tied grid of TV(p*_asym, p*_tied).
     ≈ 0 everywhere → the per-origin split is decoration for this world.
@@ -195,7 +195,7 @@ def o1_separability(world: World, beta_grid=None, rho_grid=None,
     return rows
 
 
-def o1_rho_out_sep(world: World, beta_grid, rho_grid, rho_out_grid,
+def separability_rho_out_sep(world: World, beta_grid, rho_grid, rho_out_grid,
                    beta_t: float = 4.0, w_g: float = 0.3,
                    ball: str = "kl") -> list[dict]:
     """Liveness probe (case D only): sweep the conditioned outer radius
@@ -232,7 +232,7 @@ def o1_rho_out_sep(world: World, beta_grid, rho_grid, rho_out_grid,
     return rows
 
 
-def o1_case_param_sweep(case: str, cfg: WorldConfig, world: World,
+def separability_case_param_sweep(case: str, cfg: WorldConfig, world: World,
                         probe: Condition, values) -> list[dict]:
     """Sweep the case-specific parameter (γ for B, c_d for C) at a fixed
     risk-on probe, measuring TV against the world's own fixed-parameter
@@ -260,11 +260,11 @@ def o1_case_param_sweep(case: str, cfg: WorldConfig, world: World,
     return rows
 
 
-def run_o1(case: str, cfg: WorldConfig, world_seeds,
+def run_separability(case: str, cfg: WorldConfig, world_seeds,
            beta_grid=None, rho_grid=None, gate: bool = True,
            ball: str = "kl", rho_out_grid=None
            ) -> tuple[list[dict], list[dict], list[dict]]:
-    """Full O1 + O1b for one case over test worlds. Returns
+    """Full separability + family separability for one case over test worlds. Returns
     (grid_rows, sep_rows, meta): meta records hardness-gate attempts and
     probe values per world (no silent caps). `gate=False` takes
     the first world draw per seed; rows carry a `gated` column and meta
@@ -293,10 +293,10 @@ def run_o1(case: str, cfg: WorldConfig, world_seeds,
                      "beta_min": world.beta_min,
                      **{f"beta_bound_{k}": v
                         for k, v in world.beta_bounds.items()}})
-        new_rows = o1_grid(world, beta_grid, rho_grid, ball=ball)
-        new_sep = o1_separability(world, beta_grid, rho_grid, ball=ball)
+        new_rows = separability_grid(world, beta_grid, rho_grid, ball=ball)
+        new_sep = target_separability(world, beta_grid, rho_grid, ball=ball)
         if rho_out_grid is not None and case == "D":
-            new_sep = new_sep + o1_rho_out_sep(world, beta_grid,
+            new_sep = new_sep + separability_rho_out_sep(world, beta_grid,
                                                rho_grid, rho_out_grid,
                                                ball=ball)
         for r in new_rows + new_sep:

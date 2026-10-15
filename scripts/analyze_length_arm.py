@@ -35,10 +35,10 @@ confirmation before this output is read as a final verdict.
 
 Usage:
     python scripts/analyze_length_arm.py \
-        --cell d2 results/o2-dev/DIR results/o2-d2-subtb/DIR \
-        --cell d3 results/o2-d3/DIR results/o2-d3-subtb/DIR \
-        --cell d4 results/o2-d4/DIR results/o2-d4-subtb/DIR \
-        --cell seq-d8 results/seq-o2/DIR results/seq-o2-subtb/DIR \
+        --cell d2 results/amortization-dev/DIR results/amortization-d2-subtb/DIR \
+        --cell d3 results/amortization-d3/DIR results/amortization-d3-subtb/DIR \
+        --cell d4 results/amortization-d4/DIR results/amortization-d4-subtb/DIR \
+        --cell seq-d8 results/seq-amortization/DIR results/seq-amortization-subtb/DIR \
         --holm --out results/length-arm
 """
 
@@ -54,7 +54,7 @@ from rsgfn.runio import unique_run_dir
 from rsgfn.stats import (cluster_bootstrap_ci, cluster_permutation_test,
                          holm, paired_sign_permutation)
 
-O2_LINE = 3.0
+AMORTIZATION_LINE = 3.0
 # args.json fields that must agree between the two arms of a cell; the
 # loss itself is the only difference the comparison is allowed to carry.
 CONFIG_KEYS = ("H", "d", "geometry", "worlds", "world_seed0", "seeds",
@@ -95,7 +95,7 @@ def _read_arm(run_dir: str) -> dict:
     it there and never off the rows.
     """
     out: dict = {}
-    pattern = str(pathlib.Path(run_dir) / "**" / "o2_case?.csv")
+    pattern = str(pathlib.Path(run_dir) / "**" / "amortization_case?.csv")
     for path in sorted(glob.glob(pattern, recursive=True)):
         case = pathlib.Path(path).stem[-1]
         with open(path) as fh:
@@ -108,7 +108,7 @@ def _read_arm(run_dir: str) -> dict:
 
 def _arm_summary(pairs: dict) -> dict:
     """Ratio of means over worlds (the endpoint convention of
-    check_endpoints.check_o2) plus a cluster-bootstrap CI on L1."""
+    check_endpoints.check_amortization) plus a cluster-bootstrap CI on L1."""
     l1: dict = {}
     floor: dict = {}
     for (world, _seed), (v, f) in pairs.items():
@@ -119,7 +119,7 @@ def _arm_summary(pairs: dict) -> dict:
     num = float(np.mean([np.mean(v) for v in l1.values()]))
     den = float(np.mean([np.mean(v) for v in floor.values()]))
     return {"l1": num, "l1_ci95": [lo, hi], "floor": den,
-            "ratio": num / den, "pass_3x": bool(num / den <= O2_LINE),
+            "ratio": num / den, "pass_3x": bool(num / den <= AMORTIZATION_LINE),
             "n_worlds": len(l1), "n_runs": len(pairs)}
 
 

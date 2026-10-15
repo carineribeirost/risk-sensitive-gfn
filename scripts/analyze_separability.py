@@ -1,5 +1,5 @@
-"""Analysis: nested-family separability endpoints from O1b sep
-CSVs (`o1_case*_sep.csv` written by scripts/run_o1.py).
+"""Analysis: nested-family separability endpoints from family separability sep
+CSVs (`separability_case*_sep.csv` written by scripts/run_separability.py).
 
 Per case and per metric column (`tv_to_*`): per-world max, then the
 cluster bootstrap CI over worlds of those maxes; the endpoint is the
@@ -7,12 +7,12 @@ median-of-max against the fixed 0.05 separability margin
 (PASS = the per-origin family separates from the reference family).
 
 Usage:
-    python scripts/analyze_o1b.py RUN_DIR [RUN_DIR ...] \
+    python scripts/analyze_separability.py RUN_DIR [RUN_DIR ...] \
         [--margin 0.05] [--out summary.json]
 
 Accepts several run dirs because dev runs are launched one case per
 process (each with its own timestamped dir). The JSON is written to
---out, defaulting to <first RUN_DIR>/o1b_summary.json.
+--out, defaulting to <first RUN_DIR>/family_separability_summary.json.
 """
 
 import argparse
@@ -28,10 +28,10 @@ MARGIN = 0.05  # fixed separability margin; do not retune
 
 
 def load_sep_rows(run_dirs) -> dict[str, list[dict]]:
-    """All o1_case*_sep.csv rows under the given run dirs, keyed by case."""
+    """All separability_case*_sep.csv rows under the given run dirs, keyed by case."""
     by_case: dict[str, list[dict]] = {}
     for d in run_dirs:
-        for path in sorted(pathlib.Path(d).glob("o1_case*_sep.csv")):
+        for path in sorted(pathlib.Path(d).glob("separability_case*_sep.csv")):
             with open(path) as fh:
                 for r in csv.DictReader(fh):
                     by_case.setdefault(r["case"], []).append(r)
@@ -72,16 +72,16 @@ def main() -> None:
     verdict table."""
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dirs", nargs="+",
-                    help="run dir(s) from scripts/run_o1.py")
+                    help="run dir(s) from scripts/run_separability.py")
     ap.add_argument("--margin", type=float, default=MARGIN)
     ap.add_argument("--out", default=None,
                     help="JSON output path (default: "
-                    "<first run dir>/o1b_summary.json)")
+                    "<first run dir>/family_separability_summary.json)")
     args = ap.parse_args()
 
     by_case = load_sep_rows(args.run_dirs)
     if not by_case:
-        raise SystemExit("no o1_case*_sep.csv found in the given dirs "
+        raise SystemExit("no separability_case*_sep.csv found in the given dirs "
                          "(case A has one origin and emits none)")
     summary = {"run_dirs": [str(d) for d in args.run_dirs],
                "margin": args.margin,
@@ -89,7 +89,7 @@ def main() -> None:
                          for case, rows in sorted(by_case.items())}}
 
     out = pathlib.Path(args.out) if args.out else (
-        pathlib.Path(args.run_dirs[0]) / "o1b_summary.json")
+        pathlib.Path(args.run_dirs[0]) / "family_separability_summary.json")
     with open(out, "w") as fh:
         json.dump(summary, fh, indent=2)
 

@@ -1,7 +1,7 @@
 """Paper-2 machinery: σ dial semantics (incl. the δ≡σ unification and
 monotonicity), winsorization, corruption models, and the recovery
 pipeline end-to-end on a tiny world. σ=0 bitwise identity is gated by
-the existing golden suite (test_w31_regression)."""
+the existing golden suite (test_policy_golden)."""
 
 import dataclasses
 
@@ -10,7 +10,7 @@ import pytest
 
 from rsgfn.cases import psi_and_masks, target_for
 from rsgfn.conditions import Condition, ConditionRanges, RiskC, tied_risk
-from rsgfn.corrupt import MODELS, corrupt_world, crude_world
+from rsgfn.corruption import MODELS, corrupt_world, crude_world
 from rsgfn.risk import winsorize_scores
 from rsgfn.train import TrainConfig, ranges_for, train_policy
 from rsgfn.worlds import WorldConfig, sample_world
@@ -133,12 +133,12 @@ def test_crude_world_levels(worlds):
 
 
 def test_recovery_script_smoke(tmp_path):
-    """The run_recovery.py script runs end-to-end and writes a recovery.csv
+    """The run_corruption_recovery.py script runs end-to-end and writes a recovery.csv
     with the expected arms and valid sat_mass_true values."""
     import subprocess
     import sys
     r = subprocess.run(
-        [sys.executable, "scripts/run_recovery.py", "--cases", "A",
+        [sys.executable, "scripts/run_corruption_recovery.py", "--cases", "A",
          "--worlds", "1", "--world-seed0", "0", "--H", "8",
          "--models", "crash", "--levels", "0.1",
          "--out", str(tmp_path / "rec")],

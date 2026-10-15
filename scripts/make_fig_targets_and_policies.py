@@ -7,12 +7,12 @@ and its DATA is saved (drafts/figures/fig_policy_data.npz) so any
 machine can re-render styling without retraining.
 
 Usage (run box; device auto-selects cuda via default_device):
-    .venv/bin/python scripts/make_fig_objects.py --which policy
+    .venv/bin/python scripts/make_fig_targets_and_policies.py --which policy
 Then copy drafts/figures/fig_policy_data.npz (and/or the PDF) back
 and re-render locally if styling changes:
-    .venv/bin/python scripts/make_fig_objects.py --which render
+    .venv/bin/python scripts/make_fig_targets_and_policies.py --which render
 Exact-layer targets figure (no training, any machine):
-    .venv/bin/python scripts/make_fig_objects.py --which targets
+    .venv/bin/python scripts/make_fig_targets_and_policies.py --which targets
 """
 
 import argparse

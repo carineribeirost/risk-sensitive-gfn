@@ -7,18 +7,18 @@ Confirmatory figures are built from TEST-block run dirs only;
 pointing these at dev dirs is for drafting layouts.
 
 Usage examples:
-    python scripts/make_figures.py f1 --o1-dir results/test-o1/DIR
-    python scripts/make_figures.py f2 --o2-dirs results/test-o2/DIR \
-        --tied-dir results/o2-tied/DIR --oracle-dir results/oracle-gap/DIR
+    python scripts/make_figures.py f1 --separability-dir results/test-separability/DIR
+    python scripts/make_figures.py f2 --amortization-dirs results/test-amortization/DIR \
+        --tied-dir results/amortization-tied/DIR --oracle-dir results/oracle-gap/DIR
     python scripts/make_figures.py f3 \
-        --asym results/test-o3/DIR/o3_asym_analysis.json
-    python scripts/make_figures.py f4 --grid-o2 DIR --seq-o2 DIR \
-        --grid-o1 DIR --seq-o1 DIR [--grid-asym J --seq-asym J]
+        --asym results/test-utility/DIR/utility_asym_analysis.json
+    python scripts/make_figures.py f4 --grid-amortization DIR --seq-amortization DIR \
+        --grid-separability DIR --seq-separability DIR [--grid-asym J --seq-asym J]
     python scripts/make_figures.py f5 \
-        --w33-csv results/w33/DIR/w33_runs.csv
+        --exploration-csv results/exploration/DIR/exploration_runs.csv
     python scripts/make_figures.py f6|f7 \
         --recovery-csv results/p2-recovery/DIR/recovery.csv
-    python scripts/make_figures.py tables --o1-dir ... --o2-dirs ... \
+    python scripts/make_figures.py tables --separability-dir ... --amortization-dirs ... \
         --oracle-dir ... --experts-dir ...
 """
 
@@ -69,13 +69,13 @@ def _save(fig, name):
 
 
 # ---------------------------------------------------------------- F1
-def fig_separability(o1_dir):
-    """Render F1: the four-panel O1b separability figure (one panel per
+def fig_separability(separability_dir):
+    """Render F1: the four-panel family separability separability figure (one panel per
     case A-D).
 
     Args:
-        o1_dir: Run dir from scripts/run_o1.py containing
-            o1_case?_sep.csv files.
+        separability_dir: Run dir from scripts/run_separability.py containing
+            separability_case?_sep.csv files.
     """
     fig, axes = plt.subplots(2, 2, figsize=(2 * UNIT[0], 2 * UNIT[1]))
     ax = axes[0, 0]
@@ -84,7 +84,7 @@ def fig_separability(o1_dir):
     ax.set_axis_off()
 
     ax = axes[0, 1]  # B heatmap rho+ x rho- of world-median tv_to_shared
-    rows = _rows(str(pathlib.Path(o1_dir) / "**" / "o1_caseB_sep.csv"))
+    rows = _rows(str(pathlib.Path(separability_dir) / "**" / "separability_caseB_sep.csv"))
     rows = [r for r in rows if r.get("rho_p") not in (None, "")]
     if rows:
         rps = sorted({float(r["rho_p"]) for r in rows})
@@ -109,7 +109,7 @@ def fig_separability(o1_dir):
     ax.set_title("conflicting evidence (B)")
 
     ax = axes[1, 0]  # C: delta vs tv per rho
-    rows = _rows(str(pathlib.Path(o1_dir) / "**" / "o1_caseC_sep.csv"))
+    rows = _rows(str(pathlib.Path(separability_dir) / "**" / "separability_caseC_sep.csv"))
     if rows:
         rhos = sorted({float(r["rho"]) for r in rows})
         for rho in rhos:
@@ -128,7 +128,7 @@ def fig_separability(o1_dir):
     ax.set_title("veto criteria (C)")
 
     ax = axes[1, 1]  # D: grouped bars per origin
-    rows = _rows(str(pathlib.Path(o1_dir) / "**" / "o1_caseD_sep.csv"))
+    rows = _rows(str(pathlib.Path(separability_dir) / "**" / "separability_caseD_sep.csv"))
     if rows:
         origins = sorted({r["origin"] for r in rows})
         med = [np.median([float(r["tv_to_shared"]) for r in rows
@@ -154,12 +154,12 @@ DIM_AXIS = [("A", 4, "A"), ("C", 5, "C"), ("B-tied", 5.35, "5t"),
             ("B", 6, "B"), ("D", 8, "D")]
 
 
-def fig_amortization(o2_dirs, tied_dir=None, oracle_dir=None):
+def fig_amortization(amortization_dirs, tied_dir=None, oracle_dir=None):
     """Render F2: held-out L1 vs number of dials (left) and the training
     gap to the oracle (right).
 
     Args:
-        o2_dirs: Run dirs from scripts/run_o2.py, one point per case.
+        amortization_dirs: Run dirs from scripts/run_amortization.py, one point per case.
         tied_dir: Optional run dir for the B-tied comparison point.
         oracle_dir: Optional run dir from scripts/launch_oracle.py for
             the oracle panel.
@@ -171,12 +171,12 @@ def fig_amortization(o2_dirs, tied_dir=None, oracle_dir=None):
             if not tied_dir:
                 continue
             rows = _rows(str(pathlib.Path(tied_dir)
-                             / "**" / "o2_caseB.csv"))
+                             / "**" / "amortization_caseB.csv"))
         else:
             rows = []
-            for d in o2_dirs:
+            for d in amortization_dirs:
                 rows += _rows(str(pathlib.Path(d)
-                                  / "**" / f"o2_case{case}.csv"))
+                                  / "**" / f"amortization_case{case}.csv"))
         if not rows:
             continue
         pt, lo, hi = _ci_over_worlds(rows, "heldout_l1")
@@ -224,8 +224,8 @@ def fig_utility(asym_json):
     reliability asymmetry, for the stress and contamination arms.
 
     Args:
-        asym_json: Path to the o3_asym_analysis.json summary from
-            analyze_o3_asym.py.
+        asym_json: Path to the utility_asym_analysis.json summary from
+            analyze_utility_asym.py.
     """
     s = json.load(open(asym_json))
     conf = s["confirmatory_B"]
@@ -257,9 +257,9 @@ def fig_utility(asym_json):
 
 
 # ---------------------------------------------------------------- F4
-def _sep_mom(o1_dir, case):
-    rows = _rows(str(pathlib.Path(o1_dir) / "**"
-                     / f"o1_case{case}_sep.csv"))
+def _sep_mom(separability_dir, case):
+    rows = _rows(str(pathlib.Path(separability_dir) / "**"
+                     / f"separability_case{case}_sep.csv"))
     per: dict = {}
     for r in rows:
         w = r.get("world") or r.get("world_seed")
@@ -268,25 +268,25 @@ def _sep_mom(o1_dir, case):
             if per else np.nan)
 
 
-def fig_scale(grid_o2, seq_o2, grid_o1, seq_o1,
+def fig_scale(grid_amortization, seq_amortization, grid_separability, seq_separability,
               grid_asym=None, seq_asym=None):
     """Render F4: separability, amortization, and the case B matched-Δ,
     grid world vs sequence world side by side.
 
     Args:
-        grid_o2: Grid-world run dir from scripts/run_o2.py.
-        seq_o2: Sequence-world run dir from scripts/run_o2.py.
-        grid_o1: Grid-world run dir from scripts/run_o1.py.
-        seq_o1: Sequence-world run dir from scripts/run_o1.py.
-        grid_asym: Optional grid-world o3_asym_analysis.json path.
-        seq_asym: Optional sequence-world o3_asym_analysis.json path.
+        grid_amortization: Grid-world run dir from scripts/run_amortization.py.
+        seq_amortization: Sequence-world run dir from scripts/run_amortization.py.
+        grid_separability: Grid-world run dir from scripts/run_separability.py.
+        seq_separability: Sequence-world run dir from scripts/run_separability.py.
+        grid_asym: Optional grid-world utility_asym_analysis.json path.
+        seq_asym: Optional sequence-world utility_asym_analysis.json path.
     """
     cases = ["A", "B", "C", "D"]
     fig, axes = plt.subplots(1, 3, figsize=(3 * UNIT[0], UNIT[1]))
 
     ax = axes[0]  # separability median-of-max per case
-    for k, (d, lab) in enumerate(((grid_o1, "grid world"),
-                                  (seq_o1, "sequence world"))):
+    for k, (d, lab) in enumerate(((grid_separability, "grid world"),
+                                  (seq_separability, "sequence world"))):
         vals = [_sep_mom(d, c) for c in cases]
         ax.bar(np.arange(4) + (k - 0.5) * 0.35, vals, width=0.35,
                label=lab)
@@ -297,12 +297,12 @@ def fig_scale(grid_o2, seq_o2, grid_o1, seq_o1,
     ax.legend(fontsize=7)
 
     ax = axes[1]  # L1/floor per case
-    for k, (d, lab) in enumerate(((grid_o2, "grid world"),
-                                  (seq_o2, "sequence world"))):
+    for k, (d, lab) in enumerate(((grid_amortization, "grid world"),
+                                  (seq_amortization, "sequence world"))):
         vals = []
         for c in cases:
             rows = _rows(str(pathlib.Path(d) / "**"
-                             / f"o2_case{c}.csv"))
+                             / f"amortization_case{c}.csv"))
             if rows:
                 l1 = np.mean([float(r["heldout_l1"]) for r in rows])
                 fl = np.mean([float(r["mc_floor_l1"]) for r in rows])
@@ -334,16 +334,16 @@ def fig_scale(grid_o2, seq_o2, grid_o1, seq_o1,
 
 
 # ---------------------------------------------------------------- F5
-def fig_reproduction(w33_csv):
+def fig_reproduction(exploration_csv):
     """Render F5: per-case fraction of satisfying candidates discovered
     vs target sparsity, one line per exploration arm, plus a bonus
     exact-error panel.
 
     Args:
-        w33_csv: Path to w33_runs.csv from scripts/run_w33.py or
-            scripts/launch_w33.py.
+        exploration_csv: Path to exploration_runs.csv from scripts/run_exploration.py or
+            scripts/launch_exploration.py.
     """
-    rows = list(csv.DictReader(open(w33_csv)))
+    rows = list(csv.DictReader(open(exploration_csv)))
     for r in rows:
         r["sparsity"] = float(r["sparsity"])
         r["frac_modes"] = float(r["frac_modes"])
@@ -497,33 +497,33 @@ def _tex_table(path, header, rows, caption, label):
     print(f"wrote {path}")
 
 
-def tables(o1_dir=None, o2_dirs=(), oracle_dir=None, experts_dir=None):
+def tables(separability_dir=None, amortization_dirs=(), oracle_dir=None, experts_dir=None):
     """Write LaTeX tables T1 (separability) and T2 (amortization +
     oracle) to results/figures.
 
     Args:
-        o1_dir: Optional run dir from scripts/run_o1.py, for T1.
-        o2_dirs: Run dirs from scripts/run_o2.py, for T2.
+        separability_dir: Optional run dir from scripts/run_separability.py, for T1.
+        amortization_dirs: Run dirs from scripts/run_amortization.py, for T2.
         oracle_dir: Optional run dir from scripts/launch_oracle.py;
             adds the exact-KL ratio column to T2.
         experts_dir: Currently unused (reserved parameter).
     """
     OUT.mkdir(parents=True, exist_ok=True)
-    if o1_dir:  # T1 separability
-        rows = [(c, f"{_sep_mom(o1_dir, c):.3f}")
+    if separability_dir:  # T1 separability
+        rows = [(c, f"{_sep_mom(separability_dir, c):.3f}")
                 for c in "BCD"]
         _tex_table(OUT / "tab1_separability.tex",
                    ["case", "sep (median-of-max)"],
                    [("A", "N/A (single origin)")] + rows,
                    "Separability endpoints (margin 0.05).",
                    "tab:sep")
-    if o2_dirs:  # T2 amortization + oracle
+    if amortization_dirs:  # T2 amortization + oracle
         body = []
         for c in "ABCD":
             rows = []
-            for d in o2_dirs:
+            for d in amortization_dirs:
                 rows += _rows(str(pathlib.Path(d) / "**"
-                                  / f"o2_case{c}.csv"))
+                                  / f"amortization_case{c}.csv"))
             if not rows:
                 continue
             pt, lo, hi = _ci_over_worlds(rows, "heldout_l1")
@@ -549,15 +549,15 @@ def tables(o1_dir=None, o2_dirs=(), oracle_dir=None, experts_dir=None):
 
 
 # ---------------------------------------------------------------- F8
-def fig_rho_out(o3_dir, o1_dir):
-    """ρ_out liveness panel: left: o1 liveness curve,
+def fig_rho_out(utility_dir, separability_dir):
+    """ρ_out liveness panel: left: separability liveness curve,
     tv_to_shared_rho_out vs ρ_out (per-world light
-    lines + median, 0.05 margin in neutral gray); right: o3 utility,
+    lines + median, 0.05 margin in neutral gray); right: utility utility,
     sat_mass vs ρ_out per inner ρ at each world's own t*."""
     fig, axes = plt.subplots(1, 2, figsize=(2 * UNIT[0], UNIT[1]))
 
     ax = axes[0]
-    rows = _rows(str(pathlib.Path(o1_dir) / "**" / "o1_caseD_rhoout.csv"))
+    rows = _rows(str(pathlib.Path(separability_dir) / "**" / "separability_caseD_rhoout.csv"))
     if rows:
         worlds = sorted({r["world_seed"] for r in rows})
         ros = sorted({float(r["rho_out"]) for r in rows})
@@ -578,10 +578,10 @@ def fig_rho_out(o3_dir, o1_dir):
         ax.axhline(0.05, color="gray", ls=":", lw=0.8)
     ax.set_xlabel(r"$\rho_{\mathrm{out}}$")
     ax.set_ylabel("TV to shared family")
-    ax.set_title(r"D: $\rho_{\mathrm{out}}$ liveness (O1b)")
+    ax.set_title(r"D: $\rho_{\mathrm{out}}$ liveness (family separability)")
 
     ax = axes[1]
-    rows = _rows(str(pathlib.Path(o3_dir) / "**" / "o3_caseD.csv"))
+    rows = _rows(str(pathlib.Path(utility_dir) / "**" / "utility_caseD.csv"))
     rows = [r for r in rows if r.get("target") == "risk_rho_out"
             and abs(float(r["t"]) - float(r["t_star"])) < 1e-9]
     if rows:
@@ -601,22 +601,22 @@ def fig_rho_out(o3_dir, o1_dir):
         ax.legend(fontsize=7)
     ax.set_xlabel(r"$\rho_{\mathrm{out}}$")
     ax.set_ylabel(r"satisfying mass at $t^*$")
-    ax.set_title(r"D: utility vs $\rho_{\mathrm{out}}$ (O3)")
+    ax.set_title(r"D: utility vs $\rho_{\mathrm{out}}$ (utility)")
     _save(fig, "f8_rho_out.pdf")
 
 
 # ---------------------------------------------------------------- F9
-def fig_weight_regime(flat_o1, peaked_o1):
+def fig_weight_regime(flat_separability, peaked_separability):
     """Weight-regime atlas panel: per case, median tv_on_off vs ρ,
     one line per β: flat worlds solid, peaked (α = 0.3) dashed, the
     0.05 margin in neutral gray. Balls other than KL in the peaked dir
     are drawn as separate dashed lines labeled by ball."""
     fig, axes = plt.subplots(2, 2, figsize=(2 * UNIT[0], 2 * UNIT[1]))
     for ax, case in zip(axes.flat, "ABCD"):
-        for src, ls, tag in ((flat_o1, "-", "flat"),
-                             (peaked_o1, "--", "peaked")):
+        for src, ls, tag in ((flat_separability, "-", "flat"),
+                             (peaked_separability, "--", "peaked")):
             rows = _rows(str(pathlib.Path(src) / "**"
-                             / f"o1_case{case}.csv"))
+                             / f"separability_case{case}.csv"))
             rows = [r for r in rows if r.get("tv_on_off")
                     not in ("", "nan", None)]
             for ball in sorted({r.get("ball", "kl") for r in rows}):
@@ -692,61 +692,61 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("f1")
-    p.add_argument("--o1-dir", required=True)
+    p.add_argument("--separability-dir", required=True)
     p = sub.add_parser("f2")
-    p.add_argument("--o2-dirs", nargs="+", required=True)
+    p.add_argument("--amortization-dirs", nargs="+", required=True)
     p.add_argument("--tied-dir", default=None)
     p.add_argument("--oracle-dir", default=None)
     p = sub.add_parser("f3")
     p.add_argument("--asym", required=True)
     p = sub.add_parser("f4")
-    for f in ("--grid-o2", "--seq-o2", "--grid-o1", "--seq-o1"):
+    for f in ("--grid-amortization", "--seq-amortization", "--grid-separability", "--seq-separability"):
         p.add_argument(f, required=True)
     p.add_argument("--grid-asym", default=None)
     p.add_argument("--seq-asym", default=None)
     p = sub.add_parser("f5")
-    p.add_argument("--w33-csv", required=True)
+    p.add_argument("--exploration-csv", required=True)
     for name in ("f6", "f7"):
         p = sub.add_parser(name)
         p.add_argument("--recovery-csv", required=True)
         p.add_argument("--model", default="crash")
     p = sub.add_parser("f8")
-    p.add_argument("--o3-dir", required=True)
-    p.add_argument("--o1-dir", required=True)
+    p.add_argument("--utility-dir", required=True)
+    p.add_argument("--separability-dir", required=True)
     p = sub.add_parser("f9")
-    p.add_argument("--flat-o1", required=True)
-    p.add_argument("--peaked-o1", required=True)
+    p.add_argument("--flat-separability", required=True)
+    p.add_argument("--peaked-separability", required=True)
     p = sub.add_parser("f10")
     p.add_argument("--length-json", required=True)
     p = sub.add_parser("tables")
-    p.add_argument("--o1-dir", default=None)
-    p.add_argument("--o2-dirs", nargs="+", default=[])
+    p.add_argument("--separability-dir", default=None)
+    p.add_argument("--amortization-dirs", nargs="+", default=[])
     p.add_argument("--oracle-dir", default=None)
     p.add_argument("--experts-dir", default=None)
     a = ap.parse_args()
     if a.cmd == "f1":
-        fig_separability(a.o1_dir)
+        fig_separability(a.separability_dir)
     elif a.cmd == "f2":
-        fig_amortization(a.o2_dirs, a.tied_dir, a.oracle_dir)
+        fig_amortization(a.amortization_dirs, a.tied_dir, a.oracle_dir)
     elif a.cmd == "f3":
         fig_utility(a.asym)
     elif a.cmd == "f4":
-        fig_scale(a.grid_o2, a.seq_o2, a.grid_o1, a.seq_o1,
+        fig_scale(a.grid_amortization, a.seq_amortization, a.grid_separability, a.seq_separability,
                   a.grid_asym, a.seq_asym)
     elif a.cmd == "f5":
-        fig_reproduction(a.w33_csv)
+        fig_reproduction(a.exploration_csv)
     elif a.cmd == "f6":
         fig_recovery(a.recovery_csv, a.model)
     elif a.cmd == "f7":
         fig_fallback(a.recovery_csv, a.model)
     elif a.cmd == "f8":
-        fig_rho_out(a.o3_dir, a.o1_dir)
+        fig_rho_out(a.utility_dir, a.separability_dir)
     elif a.cmd == "f9":
-        fig_weight_regime(a.flat_o1, a.peaked_o1)
+        fig_weight_regime(a.flat_separability, a.peaked_separability)
     elif a.cmd == "f10":
         fig_length_arm(a.length_json)
     elif a.cmd == "tables":
-        tables(a.o1_dir, a.o2_dirs, a.oracle_dir, a.experts_dir)
+        tables(a.separability_dir, a.amortization_dirs, a.oracle_dir, a.experts_dir)
 
 
 if __name__ == "__main__":

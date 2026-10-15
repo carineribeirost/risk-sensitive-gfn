@@ -3,8 +3,8 @@ per seed (same seed chain), record the probe values, and mark rows."""
 
 import numpy as np
 
-from rsgfn.o1 import run_o1
-from rsgfn.o3 import run_o3
+from rsgfn.separability import run_separability
+from rsgfn.utility import run_utility
 from rsgfn.worlds import WorldConfig, make_world, sample_world
 
 CFG = WorldConfig(H=12)
@@ -22,11 +22,11 @@ def test_sample_world_no_gate_is_first_draw():
         np.testing.assert_array_equal(w.g, ref.g)
 
 
-def test_run_o1_gate_columns():
-    """run_o1 reports the gated/attempts/is_hard/probe_tv_on_off columns
+def test_run_separability_gate_columns():
+    """run_separability reports the gated/attempts/is_hard/probe_tv_on_off columns
     correctly whether gating is on or off."""
     grids = dict(beta_grid=[0.5, 1.0], rho_grid=[0.0, 0.5])
-    rows, sep, meta = run_o1("C", WorldConfig(H=8), [0], gate=False,
+    rows, sep, meta = run_separability("C", WorldConfig(H=8), [0], gate=False,
                              **grids)
     assert all(r["gated"] is False for r in rows + sep)
     m = meta[0]
@@ -34,14 +34,14 @@ def test_run_o1_gate_columns():
     assert isinstance(m["is_hard"], (bool, np.bool_))
     assert np.isfinite(m["probe_tv_on_off"])
     # gated run on the same seed reports its verdict too
-    _, _, meta_g = run_o1("C", WorldConfig(H=8), [0], gate=True, **grids)
+    _, _, meta_g = run_separability("C", WorldConfig(H=8), [0], gate=True, **grids)
     assert meta_g[0]["gated"] is True and meta_g[0]["is_hard"]
 
 
-def test_run_o3_gate_columns():
-    """run_o3 reports the gated/attempts/probe_tv_on_off columns correctly when
+def test_run_utility_gate_columns():
+    """run_utility reports the gated/attempts/probe_tv_on_off columns correctly when
     the hardness gate is disabled."""
-    rows, meta = run_o3("A", WorldConfig(H=8), [0], n_stress=8,
+    rows, meta = run_utility("A", WorldConfig(H=8), [0], n_stress=8,
                         contam_eps=None, gate=False)
     assert all(r["gated"] is False for r in rows)
     assert meta[0]["attempts"] == 1

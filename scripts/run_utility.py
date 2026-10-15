@@ -1,10 +1,10 @@
-"""O3 experiment: joint-satisfaction utility + weight-perturbation
+"""Utility experiment: joint-satisfaction utility + weight-perturbation
 stress test, comparing the risk-on family against its two poles
 (Boltzmann and pure worst-case). Exact enumeration; no training.
 
 Usage:
-    python scripts/run_o3.py --cases A B C D --worlds 3 --H 16 \
-        --out results/o3
+    python scripts/run_utility.py --cases A B C D --worlds 3 --H 16 \
+        --out results/utility
 """
 
 import argparse
@@ -12,16 +12,16 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 
 from rsgfn.baselines import KINDS as BASELINE_KINDS
-from rsgfn.o3 import run_o3, summarize
+from rsgfn.utility import run_utility, summarize
 from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
 from rsgfn.runio import Progress, unique_run_dir, write_csv
 from rsgfn.worlds import WorldConfig
 
 
 def main() -> None:
-    """Run the O3 joint-satisfaction/stress exact experiment for each case.
+    """Run the utility joint-satisfaction/stress exact experiment for each case.
 
-    Parses CLI args, runs `run_o3` over every (case, world seed) unit
+    Parses CLI args, runs `run_utility` over every (case, world seed) unit
     (in parallel when --jobs > 1, byte-identical to the sequential
     run), and writes per-case grid and world-metadata CSVs plus a
     summary JSON to --out, printing sat_mass/eff_candidates/stress
@@ -85,7 +85,7 @@ def main() -> None:
                     help="parallel (case, world) units. Every unit is "
                     "fully determined by its seed, so any value gives "
                     "byte-identical output")
-    ap.add_argument("--out", default="results/o3",
+    ap.add_argument("--out", default="results/utility",
                     help="base dir; each invocation gets a unique "
                     "timestamped subdirectory")
     args = ap.parse_args()
@@ -118,10 +118,10 @@ def main() -> None:
     # (case, seed) units are independent (stress rng is per-world
     # seeded), so the pool equals the sequential run byte-for-byte
     units = [(case, s) for case in args.cases for s in seeds]
-    prog = Progress(len(units), "o3")
+    prog = Progress(len(units), "utility")
     if args.jobs > 1:
         with ProcessPoolExecutor(max_workers=args.jobs) as ex:
-            futs = [ex.submit(run_o3, case, cfg, [s], **kw)
+            futs = [ex.submit(run_utility, case, cfg, [s], **kw)
                     for case, s in units]
             unit_res = {}
             for u, f in zip(units, futs):
@@ -130,7 +130,7 @@ def main() -> None:
     else:
         unit_res = {}
         for u in units:
-            unit_res[u] = run_o3(u[0], cfg, [u[1]], **kw)
+            unit_res[u] = run_utility(u[0], cfg, [u[1]], **kw)
             prog.step(f"case {u[0]} world seed {u[1]}")
     for case in args.cases:
         rows, meta = [], []
@@ -138,10 +138,10 @@ def main() -> None:
             r, m = unit_res[(case, s)]
             rows.extend(r)
             meta.extend(m)
-        write_csv(out / f"o3_case{case}.csv", rows)
-        write_csv(out / f"o3_case{case}_worlds.csv", meta)
+        write_csv(out / f"utility_case{case}.csv", rows)
+        write_csv(out / f"utility_case{case}_worlds.csv", meta)
         summ = summarize(rows)
-        with open(out / f"o3_case{case}_summary.json", "w") as fh:
+        with open(out / f"utility_case{case}_summary.json", "w") as fh:
             json.dump(summ, fh, indent=2)
         print(f"case {case} (at per-world challenge level t*):")
         for kind in ("boltzmann", "worst", "probe_cell",

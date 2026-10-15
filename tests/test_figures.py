@@ -22,25 +22,25 @@ def _csv(path, rows):
         w.writerows(rows)
 
 
-def _fake_o1(d):
-    _csv(d / "o1_caseB_sep.csv",
+def _fake_separability(d):
+    _csv(d / "separability_caseB_sep.csv",
          [{"world": w, "rho_p": rp, "rho_m": rm,
            "tv_to_shared": 0.02 + 0.1 * rp + 0.05 * rm}
           for w in range(2) for rp in (0.0, 0.5) for rm in (0.0, 0.5)])
-    _csv(d / "o1_caseC_sep.csv",
+    _csv(d / "separability_caseC_sep.csv",
          [{"world": w, "rho": rho, "delta": dl,
            "tv_to_shared": 0.01 + dl}
           for w in range(2) for rho in (0.0, 0.5)
           for dl in (0.0, 0.05, 0.1)])
-    _csv(d / "o1_caseD_sep.csv",
+    _csv(d / "separability_caseD_sep.csv",
          [{"world": w, "origin": o, "rho_hi": 1.0,
            "tv_to_shared": 0.06 + 0.01 * o,
            "tv_to_shared_full_split": 0.09}
           for w in range(2) for o in range(3)])
 
 
-def _fake_o2(d, case, l1, fl):
-    _csv(d / f"o2_case{case}.csv",
+def _fake_amortization(d, case, l1, fl):
+    _csv(d / f"amortization_case{case}.csv",
          [{"case": case, "world": w, "train_seed": s,
            "heldout_l1": l1 + 0.01 * s, "mc_floor_l1": fl}
           for w in range(3) for s in range(2)])
@@ -50,15 +50,15 @@ def test_all_figures_render(tmp_path, monkeypatch):
     """Every figure/table builder renders its output file from synthesized
     minimal CSV/JSON inputs."""
     monkeypatch.setattr(mf, "OUT", tmp_path / "figs")
-    o1 = tmp_path / "o1"
-    _fake_o1(o1)
-    mf.fig_separability(str(o1))
+    separability = tmp_path / "separability"
+    _fake_separability(separability)
+    mf.fig_separability(str(separability))
 
-    o2 = tmp_path / "o2"
+    amortization = tmp_path / "amortization"
     for c, v in (("A", 0.1), ("B", 0.5), ("C", 0.3), ("D", 0.15)):
-        _fake_o2(o2, c, v, 0.2)
+        _fake_amortization(amortization, c, v, 0.2)
     tied = tmp_path / "tied"
-    _fake_o2(tied, "B", 0.45, 0.2)
+    _fake_amortization(tied, "B", 0.45, 0.2)
     oracle = tmp_path / "oracle"
     oracle.mkdir()
     for c in "AB":
@@ -68,7 +68,7 @@ def test_all_figures_render(tmp_path, monkeypatch):
                         "gap_tb_minus_kl": {"mean": 0.3},
                         "permutation": {"p_value": 0.02},
                         "mc_floor_mean": 0.2}))
-    mf.fig_amortization([str(o2)], str(tied), str(oracle))
+    mf.fig_amortization([str(amortization)], str(tied), str(oracle))
 
     asym = tmp_path / "asym.json"
     asym.write_text(json.dumps({"confirmatory_B": {
@@ -80,17 +80,17 @@ def test_all_figures_render(tmp_path, monkeypatch):
         "dose_response": {"spearman_rho": 0.5, "p_value": 0.2}}}))
     mf.fig_utility(str(asym))
 
-    mf.fig_scale(str(o2), str(o2), str(o1), str(o1),
+    mf.fig_scale(str(amortization), str(amortization), str(separability), str(separability),
                  str(asym), str(asym))
 
-    w33 = tmp_path / "w33_runs.csv"
-    _csv(w33,
+    exploration = tmp_path / "exploration_runs.csv"
+    _csv(exploration,
          [{"case": "B", "sparsity": s, "world": w, "arm": a, "seed": 0,
            "frac_modes": 0.5 + (0.2 if a == "teacher" else 0.0),
            "final_l1": 0.3}
           for s in (1.0, 4.0) for w in range(2)
           for a in ("onpolicy", "teacher")])
-    mf.fig_reproduction(str(w33))
+    mf.fig_reproduction(str(exploration))
 
     rec = tmp_path / "recovery.csv"
     rec_rows = []
@@ -116,7 +116,7 @@ def test_all_figures_render(tmp_path, monkeypatch):
     mf.fig_fallback(str(rec))
 
     mf.OUT.mkdir(parents=True, exist_ok=True)
-    mf.tables(str(o1), [str(o2)], str(oracle))
+    mf.tables(str(separability), [str(amortization)], str(oracle))
     names = {p.name for p in (tmp_path / "figs").iterdir()}
     assert {"fig_separability.pdf", "fig_amortization.pdf",
             "fig_utility.pdf", "fig_scale.pdf",

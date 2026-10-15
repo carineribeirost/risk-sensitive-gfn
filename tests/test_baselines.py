@@ -100,7 +100,7 @@ def test_idx_subsetting_agrees_with_full_evaluation():
 
 def test_desirability_bounds_are_declared_not_fixed():
     """Changing the declared quantiles must change the target, or the
-    'declared choice' claim in the rebuttal would be empty."""
+    'declared choice' claim would be empty."""
     w, c = _world("A"), _cond("A")
     a = target_baseline(w, c, "desirability", lo_q=0.50, hi_q=0.95)
     b = target_baseline(w, c, "desirability", lo_q=0.10, hi_q=0.99)

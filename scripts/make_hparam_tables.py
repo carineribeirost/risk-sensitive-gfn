@@ -82,27 +82,27 @@ _RANGE_FLAGS = {k: ("ranges", k) for k in
 
 WIRING = {
     # analytic (enumeration only — no policy is trained)
-    "run_o1.py": {**_COMMON, **{k: _WORLD[k] for k in
+    "run_separability.py": {**_COMMON, **{k: _WORLD[k] for k in
                                 ("H", "d", "geometry", "weight_alpha",
                                  "k_guard")},
                   "no_gate": ("world", "_gate_off"), "margin": SWEEP},
-    "run_o3.py": {**_COMMON, **{k: _WORLD[k] for k in
+    "run_utility.py": {**_COMMON, **{k: _WORLD[k] for k in
                                 ("H", "d", "geometry", "weight_alpha")},
                   "no_gate": ("world", "_gate_off"), "contam_eps": SWEEP,
                   "kappa": SWEEP, "n_stress": SWEEP, "k_guard": SWEEP},
-    "run_recovery.py": {**_COMMON, **{k: _WORLD[k] for k in
+    "run_corruption_recovery.py": {**_COMMON, **{k: _WORLD[k] for k in
                                       ("H", "d", "geometry",
                                        "weight_alpha")},
                         "winsor_k": SWEEP},
     # trained
-    "run_o2.py": {**_COMMON, **{k: _WORLD[k] for k in
+    "run_amortization.py": {**_COMMON, **{k: _WORLD[k] for k in
                                 ("H", "d", "geometry", "weight_alpha",
                                  "k_guard")},
                   **_RANGE_FLAGS,
                   "steps": ("train", "steps"), "loss": ("train", "loss"),
                   "cond_pool": ("train", "cond_pool", OR_NONE),
                   "logit_floor": ("train", "logit_floor", OR_NONE)},
-    "run_w33.py": {**_COMMON, "H": _WORLD["H"], "d": _WORLD["d"],
+    "run_exploration.py": {**_COMMON, "H": _WORLD["H"], "d": _WORLD["d"],
                    "geometry": _WORLD["geometry"],
                    "max_attempts": _WORLD["max_attempts"],
                    "steps": ("train", "steps"),
@@ -117,7 +117,7 @@ WIRING = {
                           # raw, not `or None`
                           "cond_pool": ("train", "cond_pool"),
                           "logit_floor": ("train", "logit_floor", OR_NONE)},
-    "run_shrink.py": {**_COMMON, "H": _WORLD["H"],
+    "run_range_extrapolation.py": {**_COMMON, "H": _WORLD["H"],
                       "steps": ("train", "steps"),
                       "cond_pool": ("train", "cond_pool", OR_NONE),
                       "logit_floor": ("train", "logit_floor", OR_NONE)},
@@ -129,7 +129,7 @@ WIRING = {
                        "steps": ("train", "steps"),
                        "cond_pool": ("train", "cond_pool"),
                        "logit_floor": ("train", "logit_floor", OR_NONE)},
-    "run_dtying.py": {**_COMMON, "H": _WORLD["H"],
+    "run_nested_tying.py": {**_COMMON, "H": _WORLD["H"],
                       "steps": ("train", "steps"),
                       "cond_pool": ("train", "cond_pool", OR_NONE),
                       "logit_floor": ("train", "logit_floor", OR_NONE)},
@@ -153,9 +153,9 @@ WIRING = {
 # The launch_*.py wrappers fan out over (case, world) units and forward
 # every model-relevant flag verbatim to the run script beneath them, so
 # they share its wiring (the parallelism knobs are already in _COMMON).
-WIRING["launch_o2.py"] = WIRING["run_o2.py"]
+WIRING["launch_amortization.py"] = WIRING["run_amortization.py"]
 WIRING["launch_oracle.py"] = WIRING["run_oracle_gap.py"]
-WIRING["launch_w33.py"] = WIRING["run_w33.py"]
+WIRING["launch_exploration.py"] = WIRING["run_exploration.py"]
 
 # Flags whose default is a documented identity (adding them left every
 # earlier path bitwise unchanged), so resolving a run that predates the
@@ -170,7 +170,7 @@ NO_OP_DEFAULTS = {"geometry", "weight_alpha", "use_sigma", "k_guard",
 # scripts that never construct a TrainConfig — their rows carry no
 # optimization column (a trained-model hyperparameter table would be
 # misleading for an exact-enumeration run)
-ANALYTIC = {"run_o1.py", "run_o3.py", "run_recovery.py", "probe_gate.py",
+ANALYTIC = {"run_separability.py", "run_utility.py", "run_corruption_recovery.py", "probe_gate.py",
             "probe_pinned_seeds.py", "probe_wg_drowning.py"}
 
 

@@ -7,9 +7,9 @@ per-case CSVs and summaries.
 ## Table 3 — learnability, calibration family
 
 ```bash
-python scripts/launch_o2.py --cases A B C D --worlds 4 --world-seed0 0 \
+python scripts/launch_amortization.py --cases A B C D --worlds 4 --world-seed0 0 \
     --seeds 3 --H 32 --steps 12000 --cond-pool 256 --logit-floor -25.0 \
-    --jobs 10 --threads-per-job 2 --out results/o2-dev
+    --jobs 10 --threads-per-job 2 --out results/amortization-dev
 ```
 
 Oracle column, per case:
@@ -27,19 +27,19 @@ python scripts/run_oracle_gap.py --case A --worlds 4 --world-seed0 0 \
 Size axis, case C at H=16 and H=64:
 
 ```bash
-python scripts/run_o2.py --case C --worlds 4 --world-seed0 0 --seeds 3 \
+python scripts/run_amortization.py --case C --worlds 4 --world-seed0 0 --seeds 3 \
     --H 16 --steps 12000 --cond-pool 256 --logit-floor -25.0 \
-    --device cuda --out results/o2-H16
+    --device cuda --out results/amortization-H16
 ```
 
-H=64: same, `--H 64 --out results/o2-H64`.
+H=64: same, `--H 64 --out results/amortization-H64`.
 
 Depth axis, H=8/d=4, all cases:
 
 ```bash
-python scripts/launch_o2.py --cases A B C D --worlds 4 --world-seed0 0 \
+python scripts/launch_amortization.py --cases A B C D --worlds 4 --world-seed0 0 \
     --seeds 3 --H 8 --d 4 --steps 12000 --cond-pool 256 --logit-floor -25.0 \
-    --jobs 16 --threads-per-job 2 --out results/o2-d4
+    --jobs 16 --threads-per-job 2 --out results/amortization-d4
 ```
 
 `paper/results/table_e1_scaling/`
@@ -47,7 +47,7 @@ python scripts/launch_o2.py --cases A B C D --worlds 4 --world-seed0 0 \
 ## Figures 2, 3, D.1–D.8, Table 4 — exploration under sparsity
 
 ```bash
-python scripts/launch_w33.py --out results/w33
+python scripts/launch_exploration.py --out results/exploration
 ```
 
 Cases, arms, sparsity (1.0, 4.0), and the deployment-scale sequence

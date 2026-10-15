@@ -3,7 +3,7 @@ sign-flip permutation test."""
 
 import numpy as np
 
-from rsgfn.o3 import contamination_metrics, realized_utility, run_o3
+from rsgfn.utility import contamination_metrics, realized_utility, run_utility
 from rsgfn.stats import paired_sign_permutation
 from rsgfn.worlds import CASES, WorldConfig, make_world
 
@@ -64,13 +64,13 @@ def test_contam_matches_manual_stress_draw_case_b():
                       realized_utility(w, p, stress)[0])
 
 
-def test_run_o3_contam_columns():
-    """run_o3 includes contamination columns when contam_eps is set and omits
+def test_run_utility_contam_columns():
+    """run_utility includes contamination columns when contam_eps is set and omits
     them when it is None."""
-    rows, _ = run_o3("A", WorldConfig(H=8), [0], n_stress=16,
+    rows, _ = run_utility("A", WorldConfig(H=8), [0], n_stress=16,
                      contam_eps=0.2)
     assert all("contam_worst" in r for r in rows)
-    rows_off, _ = run_o3("A", WorldConfig(H=8), [0], n_stress=16,
+    rows_off, _ = run_utility("A", WorldConfig(H=8), [0], n_stress=16,
                          contam_eps=None)
     assert all("contam_worst" not in r for r in rows_off)
 

@@ -1,4 +1,4 @@
-"""Analysis: O3 matched-vs-mismatched asymmetry (confirmatory) +
+"""Analysis: utility matched-vs-mismatched asymmetry (confirmatory) +
 the regime atlas (exploratory).
 
 Confirmatory (case B):
@@ -20,12 +20,12 @@ Regime atlas (all cases in the run dir):
 - corner dominance: per metric and corner, cluster bootstrap CI of
   (best interior − best corner) per world; a corner is competitive if
   the CI does not exclude zero from above.
-- boundary extraction (needs --o1-dir): per world and β row, the
+- boundary extraction (needs --separability-dir): per world and β row, the
   smallest ρ at which tv_vs_worst < the hardness margin; beyond it
   the family has become the worst-case pole.
 
 Usage:
-    python scripts/analyze_o3_asym.py O3_RUN_DIR [--o1-dir O1_RUN_DIR]
+    python scripts/analyze_utility_asym.py UTILITY_RUN_DIR [--separability-dir SEPARABILITY_RUN_DIR]
         [--margin 0.05] [--tost-margin 0.10] [--out summary.json]
 """
 
@@ -65,7 +65,7 @@ def at_t_star(rows: list[dict]) -> list[dict]:
     """Keep only the rows evaluated at each world's own challenge level t*.
 
     Args:
-        rows: O3 CSV rows with numeric "t" and "t_star" columns.
+        rows: utility CSV rows with numeric "t" and "t_star" columns.
 
     Returns:
         list[dict]: Rows where t == t_star (within floating-point tolerance).
@@ -112,8 +112,8 @@ def asym_confirmatory(rows, meta, tost_margin: float) -> dict:
     the dose-response check against |log κ ratio|.
 
     Args:
-        rows: o3_caseB.csv rows (all targets, all worlds).
-        meta: o3_caseB_worlds.csv rows giving kappa_p/kappa_m per world.
+        rows: utility_caseB.csv rows (all targets, all worlds).
+        meta: utility_caseB_worlds.csv rows giving kappa_p/kappa_m per world.
         tost_margin: Relative TOST equivalence margin for the
             eff_candidates ratio.
 
@@ -188,7 +188,7 @@ def classify(row: dict) -> str:
     """Label a row's target as a comparator corner or an interior point.
 
     Args:
-        row: One O3 CSV row (any case).
+        row: One utility CSV row (any case).
 
     Returns:
         str: One of "boltzmann", "worst", "cvar_only", "dro_only",
@@ -227,7 +227,7 @@ def regime_atlas(rows: list[dict]) -> dict:
     corner-dominance CIs, evaluated at each world's own t*.
 
     Args:
-        rows: O3 CSV rows for one case (all targets, all worlds).
+        rows: utility CSV rows for one case (all targets, all worlds).
 
     Returns:
         dict: Per metric, the winning-region mode, the region counts,
@@ -280,12 +280,12 @@ def regime_atlas(rows: list[dict]) -> dict:
 
 # ---------------------------------------------------------------- part 3
 
-def rho_boundaries(o1_rows: list[dict], margin: float) -> dict:
+def rho_boundaries(separability_rows: list[dict], margin: float) -> dict:
     """Per world: smallest ρ with tv_vs_worst < margin, per β row and
     the per-world min over β rows (NaN → never leaves the useful range
     on this grid)."""
     per: dict[str, dict[float, float]] = {}
-    for r in o1_rows:
+    for r in separability_rows:
         v = _f(r, "tv_vs_worst")
         if not np.isfinite(v):
             continue
@@ -309,9 +309,9 @@ def main() -> None:
     extraction), write the JSON summary, and print a human-readable
     report."""
     ap = argparse.ArgumentParser()
-    ap.add_argument("o3_dir", help="run dir from scripts/run_o3.py")
-    ap.add_argument("--o1-dir", default=None,
-                    help="run dir from scripts/run_o1.py for the "
+    ap.add_argument("utility_dir", help="run dir from scripts/run_utility.py")
+    ap.add_argument("--separability-dir", default=None,
+                    help="run dir from scripts/run_separability.py for the "
                     "ρ-boundary extraction (atlas §3.3)")
     ap.add_argument("--margin", type=float, default=0.05,
                     help="hardness margin for the ρ boundary")
@@ -319,28 +319,28 @@ def main() -> None:
                     help="TOST relative margin on the eff ratio")
     ap.add_argument("--out", default=None,
                     help="JSON output path (default: "
-                    "<o3_dir>/o3_asym_analysis.json)")
+                    "<utility_dir>/utility_asym_analysis.json)")
     args = ap.parse_args()
 
-    o3_dir = pathlib.Path(args.o3_dir)
-    summary = {"o3_dir": str(o3_dir), "o1_dir": args.o1_dir,
+    utility_dir = pathlib.Path(args.utility_dir)
+    summary = {"utility_dir": str(utility_dir), "separability_dir": args.separability_dir,
                "atlas": {}, "boundary": {}}
-    for path in sorted(o3_dir.glob("o3_case?.csv")):
+    for path in sorted(utility_dir.glob("utility_case?.csv")):
         case = path.stem[-1]
         rows = read_csv(path)
         summary["atlas"][case] = regime_atlas(rows)
         if case == "B":
-            meta = read_csv(o3_dir / "o3_caseB_worlds.csv")
+            meta = read_csv(utility_dir / "utility_caseB_worlds.csv")
             if meta and "kappa_p" in meta[0]:
                 summary["confirmatory_B"] = asym_confirmatory(
                     rows, meta, args.tost_margin)
-    if args.o1_dir:
-        for path in sorted(pathlib.Path(args.o1_dir).glob("o1_case?.csv")):
+    if args.separability_dir:
+        for path in sorted(pathlib.Path(args.separability_dir).glob("separability_case?.csv")):
             summary["boundary"][path.stem[-1]] = rho_boundaries(
                 read_csv(path), args.margin)
 
     out = pathlib.Path(args.out) if args.out else (
-        o3_dir / "o3_asym_analysis.json")
+        utility_dir / "utility_asym_analysis.json")
     with open(out, "w") as fh:
         json.dump(summary, fh, indent=2, default=str)
 

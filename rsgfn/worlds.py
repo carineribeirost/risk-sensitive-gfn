@@ -131,7 +131,7 @@ class WorldConfig:
     #                             nominal weight draws (w, p, q,
     #                             w_inner rows, π). 2.0 = flat family;
     #                             a peaked family uses e.g. 0.3
-    # fixed case parameters (invented; swept separately in O1)
+    # fixed case parameters (invented; swept separately in separability)
     gamma: float = 1.0          # B: trade-off on Φ(S⁻)
     # B: floor level f on Φ(S⁺). None → calibrated per world as the
     # floor_quantile of Φ(S⁺) at the fixed reference condition
@@ -215,7 +215,7 @@ class World:
     @property
     def beta_min(self) -> float:
         """Bound for a *shared* β applied to every active set at once
-        (tied conditions, O1/O3 grids): the max of the per-set bounds.
+        (tied conditions, separability/utility grids): the max of the per-set bounds.
         Supersedes a pooled global minimum, which under-protects
         sets whose smallest weight exceeds the pooled one."""
         return float(max(self.beta_bounds.values()))

@@ -2,11 +2,11 @@
 gate.
 
 Run ONCE against the old 2-step-hardcoded policy to freeze its exact
-outputs; `test_w31_regression.py` then asserts the generalized
+outputs; `test_policy_golden.py` then asserts the generalized
 d-coordinate implementation reproduces every array exactly at d=2.
 Committed alongside the golden .npz so the capture is auditable.
 
-Usage: .venv/bin/python tests/make_w31_golden.py
+Usage: .venv/bin/python tests/make_policy_golden.py
 """
 
 import numpy as np
@@ -16,7 +16,7 @@ from rsgfn.policy import ConditionalPolicy
 from rsgfn.train import TrainConfig, train_policy
 from rsgfn.worlds import WorldConfig, sample_world
 
-OUT = "tests/data/w31_golden.npz"
+OUT = "tests/data/policy_golden.npz"
 
 
 def main():

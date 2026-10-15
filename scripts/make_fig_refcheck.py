@@ -11,10 +11,10 @@ triangulation that is independent of the POLICY: GFlowNet matches
 rejection → residual vs p* is sampling noise; GFlowNet disagrees with
 rejection → the defect is in the GFlowNet.
 
-The GFlowNet column needs training (O2 runs save no policies), so its
+The GFlowNet column needs training (amortization runs save no policies), so its
 compute runs on a run box and the DATA is saved
 (drafts/figures/fig_refcheck_data.npz) for local re-rendering, same
-pattern as make_fig_objects.
+pattern as make_fig_targets_and_policies.
 
 Usage (run box; device auto-selects cuda via default_device):
     .venv/bin/python scripts/make_fig_refcheck.py --which data
@@ -35,7 +35,7 @@ from matplotlib.colors import LogNorm  # noqa: E402
 from rsgfn.cases import log_reward, target_for  # noqa: E402
 from rsgfn.target import l1, mc_floor  # noqa: E402
 from rsgfn.train import TrainConfig, default_device  # noqa: E402
-from rsgfn.w33 import fixed_condition, run_arm  # noqa: E402
+from rsgfn.exploration import fixed_condition, run_arm  # noqa: E402
 from rsgfn.worlds import WorldConfig, sample_world  # noqa: E402
 
 plt.style.use(["science", "bright", "no-latex"])
@@ -104,7 +104,7 @@ def compute_data(out_dir, n_samples, steps, seed, device):
         print(f"[refcheck {ci}/{len(CASES)}] case {case}: training "
               f"mix arm ({steps} steps, {device})...", flush=True)
         cfg = TrainConfig(steps=steps, seed=seed, device=device)
-        # "mix" arm = uniform off-policy half, the O2-like full-support
+        # "mix" arm = uniform off-policy half, the amortization-like full-support
         # regime, the fairest single-condition convergence reference
         student, hist = run_arm(world, cond, cfg, "mix")
         # deferred: only the "data" path needs torch

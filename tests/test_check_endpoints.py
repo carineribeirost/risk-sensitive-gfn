@@ -26,9 +26,9 @@ def test_holm_stepdown():
     assert r["b"]["p_adj"] >= r["c"]["p_adj"] >= r["a"]["p_adj"]
 
 
-def _write_o2(dirpath, case, l1, floor):
+def _write_amortization(dirpath, case, l1, floor):
     dirpath.mkdir(parents=True, exist_ok=True)
-    with open(dirpath / f"o2_case{case}.csv", "w", newline="") as fh:
+    with open(dirpath / f"amortization_case{case}.csv", "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=["case", "world", "train_seed",
                                            "heldout_l1", "mc_floor_l1"])
         w.writeheader()
@@ -39,50 +39,50 @@ def _write_o2(dirpath, case, l1, floor):
                             "mc_floor_l1": floor})
 
 
-def test_check_o2_pass_and_fail(tmp_path):
-    """check_o2 passes a case whose heldout L1 is well below the MC floor and
+def test_check_amortization_pass_and_fail(tmp_path):
+    """check_amortization passes a case whose heldout L1 is well below the MC floor and
     fails one that exceeds it, with a high bootstrap p-value on failure."""
-    _write_o2(tmp_path / "run", "A", l1=0.1, floor=0.2)   # 0.5x
-    _write_o2(tmp_path / "run", "B", l1=0.8, floor=0.2)   # 4x
-    out = ce.check_o2(str(tmp_path / "run"))
+    _write_amortization(tmp_path / "run", "A", l1=0.1, floor=0.2)   # 0.5x
+    _write_amortization(tmp_path / "run", "B", l1=0.8, floor=0.2)   # 4x
+    out = ce.check_amortization(str(tmp_path / "run"))
     assert out["A"]["pass"] and out["A"]["ci_clear"]
     assert not out["B"]["pass"]
     assert out["B"]["boot_p"] > 0.5
 
 
-def test_check_o1_sep(tmp_path):
-    """check_o1_sep passes a case whose median-of-max separability exceeds the
+def test_check_separability_sep(tmp_path):
+    """check_separability_sep passes a case whose median-of-max separability exceeds the
     margin."""
-    d = tmp_path / "o1"
+    d = tmp_path / "separability"
     d.mkdir()
-    with open(d / "o1_caseB_sep.csv", "w", newline="") as fh:
+    with open(d / "separability_caseB_sep.csv", "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=["world", "tv_to_shared"])
         w.writeheader()
         for wi in range(4):
             for v in (0.02, 0.15 + 0.01 * wi):
                 w.writerow({"world": wi, "tv_to_shared": v})
-    out = ce.check_o1_sep(str(d))
+    out = ce.check_separability_sep(str(d))
     assert out["B"]["pass"] and out["B"]["median_of_max"] > 0.15
 
 
-def test_check_o3_asym_surfaces_tost(tmp_path):
-    """check_o3_asym surfaces the TOST equivalence result under its actual
+def test_check_utility_asym_surfaces_tost(tmp_path):
+    """check_utility_asym surfaces the TOST equivalence result under its actual
     "eff_ratio_tost" key."""
-    # regression: the TOST block is written by analyze_o3_asym under
+    # regression: the TOST block is written by analyze_utility_asym under
     # "eff_ratio_tost"; check_endpoints once looked for "tost_eff" and
     # silently dropped the endpoint from the mechanical verdict
-    p = tmp_path / "o3_asym_analysis.json"
+    p = tmp_path / "utility_asym_analysis.json"
     p.write_text(json.dumps({"confirmatory_B": {
         "delta_stress_p05": {"mean": 0.01, "p_value": 0.03},
         "eff_ratio_tost": {"mean": 0.002, "equivalent": True,
                            "p_lower": 0.003, "p_upper": 0.003}}}))
-    out = ce.check_o3_asym(str(p))
+    out = ce.check_utility_asym(str(p))
     assert out["present"] and out["pass"]
     assert out["tost_equivalent"] is True
 
 
-def test_check_w33_criteria(tmp_path):
-    """check_w33 evaluates R1/R2/R3 criteria from synthetic per-arm fraction-
+def test_check_exploration_criteria(tmp_path):
+    """check_exploration evaluates R1/R2/R3 criteria from synthetic per-arm fraction-
     of- modes rows and produces a JSON-serializable result."""
     rows = []
     rng = np.random.default_rng(0)
@@ -96,12 +96,12 @@ def test_check_w33_criteria(tmp_path):
                                  "frac_modes": base
                                  + rng.normal(0, 0.01),
                                  "samples_to_80": 1000.0})
-    p = tmp_path / "w33_runs.csv"
+    p = tmp_path / "exploration_runs.csv"
     with open(p, "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader()
         w.writerows(rows)
-    out = ce.check_w33(str(p))["B"]
+    out = ce.check_exploration(str(p))["B"]
     assert out["R1_pass"] and out["R2_pass"]
     # R3's directional order isn't forced by this synthetic fixture; only
     # require that the field is a well-formed boolean

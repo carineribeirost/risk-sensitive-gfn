@@ -11,7 +11,7 @@ is canonical and fixed, the tagged sum determines the next position
 uniquely, so no separate step embedding is needed, and at d = 2 the
 table is exactly the former `x1_embed` (H value rows + null), making
 the generalization bit-for-bit identical to the 2-step implementation
-(verified by tests/test_w31_regression.py). log Z is a
+(verified by tests/test_policy_golden.py). log Z is a
 separate head on the condition embedding: it must be a function of c,
 not a scalar, for conditional trajectory balance to be well-posed.
 

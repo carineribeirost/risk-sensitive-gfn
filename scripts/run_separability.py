@@ -1,9 +1,9 @@
-"""O1 experiment: exact-target sweeps over (β_cvar, ρ) per
+"""Separability experiment: exact-target sweeps over (β_cvar, ρ) per
 case, on test worlds, with the hardness-gate metadata reported.
 
 Usage:
-    python scripts/run_o1.py --cases A B C D --worlds 8 --H 32 \
-        --out results/o1
+    python scripts/run_separability.py --cases A B C D --worlds 8 --H 32 \
+        --out results/separability
 """
 
 import argparse
@@ -11,16 +11,16 @@ from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 
-from rsgfn.o1 import run_o1
+from rsgfn.separability import run_separability
 from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
 from rsgfn.runio import Progress, unique_run_dir, write_csv
 from rsgfn.worlds import WorldConfig
 
 
 def main() -> None:
-    """Run the O1 exact-target (beta_cvar, rho) sweep for each case.
+    """Run the separability exact-target (beta_cvar, rho) sweep for each case.
 
-    Parses CLI args, runs `run_o1` over every (case, world seed) unit
+    Parses CLI args, runs `run_separability` over every (case, world seed) unit
     (in parallel when --jobs > 1, byte-identical to the sequential run
     since each unit is fully determined by its seed), and writes
     per-case grid, world-metadata, separability, and rho_out CSVs to
@@ -61,12 +61,12 @@ def main() -> None:
                     default=None,
                     help="case D only: sweep the conditioned "
                     "outer radius; liveness rows go to "
-                    "o1_caseD_rhoout.csv")
+                    "separability_caseD_rhoout.csv")
     ap.add_argument("--jobs", type=int, default=1,
                     help="parallel (case, world) units. Every unit is "
                     "fully determined by its seed, so any value gives "
                     "byte-identical output")
-    ap.add_argument("--out", default="results/o1",
+    ap.add_argument("--out", default="results/separability",
                     help="base dir; each invocation gets a unique "
                     "timestamped subdirectory")
     args = ap.parse_args()
@@ -79,7 +79,7 @@ def main() -> None:
     seeds = list(range(args.world_seed0, args.world_seed0 + args.worlds))
     # radii are ball-specific: an explicit --rho-grid wins, otherwise
     # the fixed per-ball grid, except at ball="kl" with no
-    # override, where the o1 default (7-point linspace) is kept so
+    # override, where the separability default (7-point linspace) is kept so
     # old invocations stay identical
     rho_grid = args.rho_grid
     if rho_grid is None and args.ball != "kl":
@@ -92,10 +92,10 @@ def main() -> None:
     kw = dict(beta_grid=args.beta_grid, rho_grid=rho_grid,
               gate=not args.no_gate, ball=args.ball,
               rho_out_grid=args.rho_out_grid)
-    prog = Progress(len(units), "o1")
+    prog = Progress(len(units), "separability")
     if args.jobs > 1:
         with ProcessPoolExecutor(max_workers=args.jobs) as ex:
-            futs = [ex.submit(run_o1, case, cfg, [s], **kw)
+            futs = [ex.submit(run_separability, case, cfg, [s], **kw)
                     for case, s in units]
             unit_res = {}
             for u, f in zip(units, futs):
@@ -104,7 +104,7 @@ def main() -> None:
     else:
         unit_res = {}
         for u in units:
-            unit_res[u] = run_o1(u[0], cfg, [u[1]], **kw)
+            unit_res[u] = run_separability(u[0], cfg, [u[1]], **kw)
             prog.step(f"case {u[0]} world seed {u[1]}")
 
     for case in args.cases:
@@ -116,11 +116,11 @@ def main() -> None:
             meta.extend(m)
         ro_rows = [r for r in sep_rows if r.get("probe") == "rho_out"]
         sep_rows = [r for r in sep_rows if r.get("probe") != "rho_out"]
-        write_csv(out / f"o1_case{case}.csv", rows)
-        write_csv(out / f"o1_case{case}_worlds.csv", meta)
+        write_csv(out / f"separability_case{case}.csv", rows)
+        write_csv(out / f"separability_case{case}_worlds.csv", meta)
         if ro_rows:  # liveness rows, separate file so the
             #          separability verdict is untouched
-            write_csv(out / f"o1_case{case}_rhoout.csv", ro_rows)
+            write_csv(out / f"separability_case{case}_rhoout.csv", ro_rows)
             ro = [r["tv_to_shared_rho_out"] for r in ro_rows]
             print(f"case {case}: rho_out liveness median "
                   f"{np.median(ro):.4f} max {np.max(ro):.4f}")
@@ -131,12 +131,12 @@ def main() -> None:
                f"(gate attempts mean {np.mean(att):.1f}), "
                f"grid TV median {np.median(ok):.4f} "
                f"max {np.max(ok):.4f}")
-        if sep_rows:  # O1b; case A has one origin
-            write_csv(out / f"o1_case{case}_sep.csv", sep_rows)
+        if sep_rows:  # family separability; case A has one origin
+            write_csv(out / f"separability_case{case}_sep.csv", sep_rows)
             sep = [r["tv_to_shared"] for r in sep_rows]
             msg += (f", sep median {np.median(sep):.4f} "
                     f"max {np.max(sep):.4f}")
-        print(msg + f" -> {out}/o1_case{case}.csv")
+        print(msg + f" -> {out}/separability_case{case}.csv")
 
 
 if __name__ == "__main__":

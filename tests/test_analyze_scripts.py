@@ -20,10 +20,10 @@ def load_script(name: str):
     return mod
 
 
-def test_o1b_separability_summary_endpoint():
+def test_family_separability_summary_endpoint():
     """separability_summary reports per-world max, median-of-max, and pass/fail
     per metric."""
-    a = load_script("analyze_o1b")
+    a = load_script("analyze_separability")
     # two worlds; per-world max = 0.20 and 0.06 -> median 0.13 PASS;
     # second metric flat at 0.01 -> FAIL
     rows = [
@@ -46,13 +46,13 @@ def test_o1b_separability_summary_endpoint():
     assert flat["ci_lo"] <= 0.01 <= flat["ci_hi"]
 
 
-def test_o3_asym_matched_pairs_and_confirmatory():
+def test_utility_asym_matched_pairs_and_confirmatory():
     """matched_pairs pairs rho values by kappa asymmetry, and asym_confirmatory
     produces valid confirmatory statistics."""
-    from rsgfn.o3 import run_o3
+    from rsgfn.utility import run_utility
     from rsgfn.worlds import WorldConfig
-    a = load_script("analyze_o3_asym")
-    rows, meta = run_o3("B", WorldConfig(H=8), [0, 1], n_stress=32,
+    a = load_script("analyze_utility_asym")
+    rows, meta = run_utility("B", WorldConfig(H=8), [0, 1], n_stress=32,
                         kappa_range=(8, 60))
     pairs = a.matched_pairs(rows, meta)
     kappa = {m["world_seed"]: (m["kappa_p"], m["kappa_m"]) for m in meta}
@@ -73,10 +73,10 @@ def test_o3_asym_matched_pairs_and_confirmatory():
     assert np.isfinite(conf["dose_response"]["spearman_rho"])
 
 
-def test_o3_asym_classify_and_atlas():
+def test_utility_asym_classify_and_atlas():
     """classify labels regime rows correctly, and regime_atlas summarizes
     winning regions and corner dominance."""
-    a = load_script("analyze_o3_asym")
+    a = load_script("analyze_utility_asym")
     assert a.classify({"target": "risk", "beta_cvar": 1.0,
                        "rho": 0.0}) == "boltzmann"
     assert a.classify({"target": "risk", "beta_cvar": 0.3,
@@ -101,10 +101,10 @@ def test_o3_asym_classify_and_atlas():
         "best_interior_minus_best_corner"] > 0
 
 
-def test_o3_asym_rho_boundaries():
+def test_utility_asym_rho_boundaries():
     """rho_boundaries finds the smallest rho, per beta, at which a metric drops
     below the margin."""
-    a = load_script("analyze_o3_asym")
+    a = load_script("analyze_utility_asym")
     rows = [{"world_seed": "0", "beta_cvar": 0.5, "rho": r,
              "tv_vs_worst": v}
             for r, v in [(0.0, 0.5), (0.4, 0.2), (0.8, 0.04),
@@ -126,13 +126,13 @@ def test_wg_drowning_point():
     assert p.drowning_point({0.1: 0.3, 0.9: 0.2}, margin=0.05) is None
 
 
-def test_o1b_load_sep_rows_roundtrip(tmp_path):
+def test_family_separability_load_sep_rows_roundtrip(tmp_path):
     """load_sep_rows reads separability CSVs from disk and reproduces
     separability_summary's results."""
-    a = load_script("analyze_o1b")
+    a = load_script("analyze_separability")
     rows = [{"case": "C", "world_seed": "3", "rho": "0.2",
              "delta": "0.05", "tv_to_shared": "0.11"}]
-    with open(tmp_path / "o1_caseC_sep.csv", "w", newline="") as fh:
+    with open(tmp_path / "separability_caseC_sep.csv", "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=sorted(rows[0]))
         w.writeheader()
         w.writerows(rows)

@@ -7,7 +7,7 @@ reward is R^{β_t}); the loss is mean δ² over a batch of (c, x) pairs.
 
 TB is valid off-policy, and X is enumerable, so each batch mixes
 on-policy samples with uniform-over-X samples: full support coverage by
-construction, keeping O2 a test of amortization rather than exploration.
+construction, keeping amortization a test of amortization rather than exploration.
 
 Held-out conditions come from a deterministic grid; training
 draws within an L∞ ball of any held-out feature vector are rejected.
@@ -131,7 +131,7 @@ def make_policy_and_opt(world: World, cfg: TrainConfig, dev: str,
     optimizer, with the logZ head at cfg.lr_logz (~10x trunk lr,
     standard for TB) and the rest of the trunk at cfg.lr.
     `n_cond_features`, if given, is the policy's condition-feature
-    width (train_expert/w33's arms pass 1 for an unconditional
+    width (train_expert/exploration's arms pass 1 for an unconditional
     policy; train_policy passes ranges.n_features); cfg.net can
     still override it."""
     net = dict(cfg.net)

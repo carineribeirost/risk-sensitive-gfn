@@ -1,4 +1,4 @@
-"""Parallel launcher: fan out run_w33.py across (case, sparsity,
+"""Parallel launcher: fan out run_exploration.py across (case, sparsity,
 world) units at a worker budget, then merge fragment CSVs and
 recompute the cluster-bootstrap summary.
 
@@ -9,7 +9,7 @@ nets, so many concurrent units share one GPU comfortably; thread
 pools are capped per job to avoid CPU oversubscription.
 
 --resume is forwarded to every fragment (each copies only its own
-matching cells, and the run_w33 gate fast-path reconstructs recorded
+matching cells, and the run_exploration gate fast-path reconstructs recorded
 worlds instead of re-sampling; sequence-D gates cost hours).
 
 Progress: one `[i/N elapsed<ETA]` line per completed unit (runio
@@ -17,10 +17,10 @@ Progress); live per-unit detail streams to frag_*.log in the run dir
 (`tail -f <run dir>/frag_*.log`).
 
 Usage (run box):
-    python scripts/launch_w33.py --cases A B C D --sparsity 1.0 \
+    python scripts/launch_exploration.py --cases A B C D --sparsity 1.0 \
         --arms onpolicy mix replay teacher contrastive \
         --worlds 4 --seeds 3 --H 4 --d 8 --steps 12000 \
-        --resume results/w33/... --jobs 12 --out results/w33
+        --resume results/exploration/... --jobs 12 --out results/exploration
 """
 
 import argparse
@@ -35,11 +35,11 @@ from rsgfn.launch import fan_out, merge_fragments, one_fragment, \
     write_merged_csv
 from rsgfn.runio import unique_run_dir
 from rsgfn.stats import cluster_bootstrap_ci
-from rsgfn.w33 import ARMS
+from rsgfn.exploration import ARMS
 
 
 def main() -> None:
-    """Parse CLI arguments, fan run_w33.py out across (case, sparsity,
+    """Parse CLI arguments, fan run_exploration.py out across (case, sparsity,
     world) units at a worker budget, merge the fragment CSVs, and
     recompute the per-(case, sparsity, arm) cluster-bootstrap
     summary."""
@@ -63,38 +63,38 @@ def main() -> None:
     ap.add_argument("--alpha-aux", type=float, default=1.0)
     ap.add_argument("--buf-cap", type=int, default=1024)
     ap.add_argument("--max-attempts", type=int, default=200,
-                    help="forwarded to run_w33.py (gate attempt cap; "
+                    help="forwarded to run_exploration.py (gate attempt cap; "
                     "raising is identity-preserving, log it)")
     ap.add_argument("--device", default=None,
-                    help="forwarded to run_w33.py if set")
+                    help="forwarded to run_exploration.py if set")
     ap.add_argument("--resume", default=None,
                     help="forwarded to every fragment (path to a "
-                    "stopped run's w33_runs.csv or its dir)")
+                    "stopped run's exploration_runs.csv or its dir)")
     ap.add_argument("--world-seeds", type=int, nargs="+", default=None,
                     help="known gate-passing raw world seeds, one per "
                     "world index; each fragment receives its own seed "
-                    "(run_w33 gate fast-path, is_hard verified). "
+                    "(run_exploration gate fast-path, is_hard verified). "
                     "Case-specific: single-case launches only")
     ap.add_argument("--trust-recorded-gates", action="store_true",
                     help="forwarded to every fragment: skip the "
                     "is_hard verification on fast-path worlds (only "
                     "for same-(case,sparsity,config) records, see "
-                    "run_w33.py)")
+                    "run_exploration.py)")
     ap.add_argument("--teacher-c", type=float, default=19.0,
-                    help="forwarded to run_w33.py")
+                    help="forwarded to run_exploration.py")
     ap.add_argument("--teacher-alpha", type=float, default=0.0,
-                    help="forwarded to run_w33.py")
+                    help="forwarded to run_exploration.py")
     ap.add_argument("--graded-kappa", type=float, default=0.0,
-                    help="forwarded to run_w33.py")
+                    help="forwarded to run_exploration.py")
     ap.add_argument("--save-grids", action="store_true",
-                    help="forwarded to run_w33.py: save each "
+                    help="forwarded to run_exploration.py: save each "
                     "fragment's exact policy grid.")
     ap.add_argument("--jobs", type=int,
                     default=min(12, os.cpu_count() or 1),
                     help="max concurrent (case, sparsity, world) "
                     "units; tiny nets share one GPU fine")
     ap.add_argument("--threads-per-job", type=int, default=2)
-    ap.add_argument("--out", default="results/w33")
+    ap.add_argument("--out", default="results/exploration")
     args = ap.parse_args()
 
     if args.world_seeds is not None:
@@ -116,7 +116,7 @@ def main() -> None:
 
     def launch(case, s, ws):
         frag_out = out / f"frag_{case}_s{s}_w{ws}"
-        cmd = [sys.executable, "scripts/run_w33.py", "--cases", case,
+        cmd = [sys.executable, "scripts/run_exploration.py", "--cases", case,
                "--sparsity", str(s), "--arms", *args.arms,
                "--worlds", "1", "--world-seed0", str(ws),
                "--seeds", str(args.seeds), "--H", str(args.H),
@@ -148,22 +148,22 @@ def main() -> None:
         return subprocess.Popen(cmd, env=env, stdout=log,
                                 stderr=subprocess.STDOUT)
 
-    fan_out(units, lambda u: launch(*u), args.jobs, "w33-launch", out,
+    fan_out(units, lambda u: launch(*u), args.jobs, "exploration-launch", out,
            fmt=lambda u: f"{u[0]}/s{u[1]}/world{u[2]}")
 
     # merge in the sequential run's row order (unit order = the
-    # run_w33 loop order, rows within a fragment already ordered)
+    # run_exploration loop order, rows within a fragment already ordered)
     paths = [
         one_fragment(str(out / f"frag_{case}_s{s}_w{ws}" / "**" /
-                         "w33_runs.csv"), f"{case}/s{s}/w{ws}")
+                         "exploration_runs.csv"), f"{case}/s{s}/w{ws}")
         for case, s, ws in units]
     expect = (len(args.cases) * len(args.sparsity) * args.worlds
               * len(args.arms) * args.seeds)
     rows = merge_fragments(paths, expect)
-    write_merged_csv(out / "w33_runs.csv", rows)
+    write_merged_csv(out / "exploration_runs.csv", rows)
 
     # per (case, sparsity, arm): cluster CI of frac_modes over worlds
-    # (same block as run_w33.py, on the merged rows)
+    # (same block as run_exploration.py, on the merged rows)
     summary = {}
     for case in args.cases:
         for s in args.sparsity:
@@ -185,7 +185,7 @@ def main() -> None:
                          else float("nan") for r in sel])),
                     "edge_share_mean": float(np.mean(
                         [float(r["edge_share"]) for r in sel]))}
-    with open(out / "w33_summary.json", "w") as fh:
+    with open(out / "exploration_summary.json", "w") as fh:
         json.dump(summary, fh, indent=2)
     print(json.dumps(summary, indent=2))
     print(f"merged {len(rows)} rows; hist/dens files remain in the "

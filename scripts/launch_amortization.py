@@ -1,4 +1,4 @@
-"""Parallel O2 launcher: fan out run_o2.py across (case, world) units
+"""Parallel amortization launcher: fan out run_amortization.py across (case, world) units
 at a worker budget, then merge fragment CSVs and recompute the
 cluster-bootstrap summaries.
 
@@ -8,9 +8,9 @@ units, so grouping cannot change any number. Thread pools are capped
 per job to avoid oversubscription.
 
 Usage:
-    python scripts/launch_o2.py --cases A B C D --worlds 4 \
+    python scripts/launch_amortization.py --cases A B C D --worlds 4 \
         --world-seed0 0 --seeds 3 --H 32 --steps 4000 \
-        --jobs 16 --threads-per-job 2 --out results/o2-dev
+        --jobs 16 --threads-per-job 2 --out results/amortization-dev
 """
 
 import argparse
@@ -28,7 +28,7 @@ from rsgfn.stats import cluster_bootstrap_ci
 
 
 def main() -> None:
-    """Parse CLI arguments, fan run_o2.py out across (case, world) units
+    """Parse CLI arguments, fan run_amortization.py out across (case, world) units
     at a worker budget, merge the fragment CSVs, and recompute the
     per-case cluster-bootstrap summaries."""
     ap = argparse.ArgumentParser()
@@ -38,33 +38,33 @@ def main() -> None:
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--H", type=int, default=32)
     ap.add_argument("--d", type=int, default=2,
-                    help="forwarded to run_o2.py")
+                    help="forwarded to run_amortization.py")
     ap.add_argument("--geometry", default="grid",
                     choices=["grid", "sequence"],
-                    help="forwarded to run_o2.py")
+                    help="forwarded to run_amortization.py")
     ap.add_argument("--steps", type=int, default=4000)
     ap.add_argument("--device", default=None,
-                    help="forwarded to run_o2.py if set")
+                    help="forwarded to run_amortization.py if set")
     ap.add_argument("--loss", default="tb", choices=["tb", "subtb"],
-                    help="forwarded to run_o2.py")
+                    help="forwarded to run_amortization.py")
     ap.add_argument("--use-sigma", action="store_true",
-                    help="forwarded to run_o2.py (paper 2)")
+                    help="forwarded to run_amortization.py (paper 2)")
     ap.add_argument("--use-rho-out", action="store_true",
-                    help="forwarded to run_o2.py (case D only)")
+                    help="forwarded to run_amortization.py (case D only)")
     ap.add_argument("--weight-alpha", type=float, default=2.0,
-                    help="forwarded to run_o2.py")
+                    help="forwarded to run_amortization.py")
     ap.add_argument("--k-guard", type=int, default=0,
-                    help="forwarded to run_o2.py (guarded A)")
+                    help="forwarded to run_amortization.py (guarded A)")
     ap.add_argument("--use-guard-delta", action="store_true",
-                    help="forwarded to run_o2.py (case A only)")
+                    help="forwarded to run_amortization.py (case A only)")
     ap.add_argument("--cond-pool", type=int, default=256,
-                    help="forwarded to run_o2.py (0 = streaming legacy)")
+                    help="forwarded to run_amortization.py (0 = streaming legacy)")
     ap.add_argument("--logit-floor", type=float, default=-25.0,
-                    help="forwarded to run_o2.py (0 = off)")
+                    help="forwarded to run_amortization.py (0 = off)")
     ap.add_argument("--jobs", type=int, default=os.cpu_count(),
                     help="max concurrent (case, world) units")
     ap.add_argument("--threads-per-job", type=int, default=2)
-    ap.add_argument("--out", default="results/o2")
+    ap.add_argument("--out", default="results/amortization")
     args = ap.parse_args()
 
     out = unique_run_dir(args.out, args)
@@ -77,7 +77,7 @@ def main() -> None:
 
     def launch(case, ws):
         frag_out = out / f"frag_{case}_{ws}"
-        cmd = [sys.executable, "scripts/run_o2.py", "--case", case,
+        cmd = [sys.executable, "scripts/run_amortization.py", "--case", case,
                "--worlds", "1", "--world-seed0", str(ws),
                "--seeds", str(args.seeds), "--H", str(args.H),
                "--d", str(args.d), "--geometry", args.geometry,
@@ -101,16 +101,16 @@ def main() -> None:
         return subprocess.Popen(cmd, env=env, stdout=log,
                                 stderr=subprocess.STDOUT)
 
-    fan_out(units, lambda u: launch(*u), args.jobs, "o2", out,
+    fan_out(units, lambda u: launch(*u), args.jobs, "amortization", out,
            fmt=lambda u: f"{u[0]}/world{u[1]}")
 
     for case in args.cases:
         paths = sorted(glob.glob(
-            str(out / f"frag_{case}_*" / "**" / f"o2_case{case}.csv"),
+            str(out / f"frag_{case}_*" / "**" / f"amortization_case{case}.csv"),
             recursive=True))
         expect = args.worlds * args.seeds
         rows = merge_fragments(paths, expect, context=f"case {case}: ")
-        write_merged_csv(out / f"o2_case{case}.csv", rows)
+        write_merged_csv(out / f"amortization_case{case}.csv", rows)
         groups: dict = {}
         for r in rows:
             groups.setdefault(r["world"], []).append(
@@ -122,7 +122,7 @@ def main() -> None:
                    "mc_floor_mean": float(np.mean(
                        [float(r["mc_floor_l1"]) for r in rows])),
                    "n_runs": len(rows)}
-        with open(out / f"o2_case{case}_summary.json", "w") as fh:
+        with open(out / f"amortization_case{case}_summary.json", "w") as fh:
             json.dump(summary, fh, indent=2)
         print(json.dumps(summary), flush=True)
 

@@ -6,7 +6,7 @@ training-ranges normalization) and `extrap` conditions (any feature
 outside). Never pooled.
 
 Usage:
-    python scripts/run_shrink.py --case B --worlds 4 --world-seed0 0 \
+    python scripts/run_range_extrapolation.py --case B --worlds 4 --world-seed0 0 \
         --seeds 3 --H 32 --steps 12000 --factor 0.8 --out results/shrink
 """
 

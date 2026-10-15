@@ -2,15 +2,15 @@
 (β, ρ) acts only on its own functional; C's δ is exactly a threshold
 shift; D's per-origin radii match an explicit per-o loop; bounds are
 per-set; the tied member reproduces the shared-pair behavior; and the
-O1b separability metric is positive on a gated world."""
+family separability separability metric is positive on a gated world."""
 
 import numpy as np
 import pytest
 
 from rsgfn.cases import psi_and_masks
 from rsgfn.conditions import RiskB, RiskC, RiskD, tied_risk
-from rsgfn.o1 import o1_separability
-from rsgfn.o3 import run_o3
+from rsgfn.separability import target_separability
+from rsgfn.utility import run_utility
 from rsgfn.risk import cvar_lower, cvar_upper, dro_cvar_lower
 from rsgfn.worlds import WorldConfig, make_world, sample_world
 
@@ -150,7 +150,7 @@ def test_separability_positive_for_b():
     # smoke, not the confirmatory margin: on a gated world the
     # asymmetric family must leave the tied family's hull at all
     world, _ = sample_world("B", CFG, seed=0)
-    rows = o1_separability(world,
+    rows = target_separability(world,
                            beta_grid=np.linspace(0.2, 1.0, 4),
                            rho_grid=np.linspace(0.0, 1.2, 4))
     assert rows
@@ -160,10 +160,10 @@ def test_separability_positive_for_b():
         assert r["tv_to_rho_split"] >= 0.0
 
 
-def test_run_o3_b_asym_cells_and_kappa():
-    """run_o3 on case B includes risk_asym rows carrying rho_p/rho_m and
+def test_run_utility_b_asym_cells_and_kappa():
+    """run_utility on case B includes risk_asym rows carrying rho_p/rho_m and
     reports per-side kappa values in its metadata."""
-    rows, meta = run_o3("B", WorldConfig(H=8), [0], n_stress=16,
+    rows, meta = run_utility("B", WorldConfig(H=8), [0], n_stress=16,
                         kappa_range=(8.0, 60.0))
     kinds = {r["target"] for r in rows}
     assert "risk_asym" in kinds

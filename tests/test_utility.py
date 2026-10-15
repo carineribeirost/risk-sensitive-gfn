@@ -1,4 +1,4 @@
-"""O3 tests: worst-case pole correctness, satisfaction semantics, and
+"""Utility tests: worst-case pole correctness, satisfaction semantics, and
 the compensation effect on a constructed geometry: the risk-on target
 must put more mass on the jointly-satisfying point than Boltzmann,
 which is fooled by a point whose strong state compensates a weak one."""
@@ -7,8 +7,8 @@ import numpy as np
 
 from rsgfn.cases import psi_worst_case, target_for, target_worst
 from rsgfn.conditions import Condition, tied_risk
-from rsgfn.o3 import (challenge_level, dist_metrics, draw_stress,
-                      run_o3, satisfaction_mask, stress_metrics)
+from rsgfn.utility import (challenge_level, dist_metrics, draw_stress,
+                      run_utility, satisfaction_mask, stress_metrics)
 from rsgfn.worlds import CASES, World, WorldConfig, make_world
 
 CFG = WorldConfig(H=12)
@@ -96,10 +96,10 @@ def test_stress_metrics_finite_and_ordered():
         assert m["stress_p05"] <= m["stress_mean"] + 1e-12
 
 
-def test_run_o3_shapes():
-    """run_o3 produces rows for every target kind with valid sat_mass, and one
+def test_run_utility_shapes():
+    """run_utility produces rows for every target kind with valid sat_mass, and one
     probe_cell row per t level."""
-    rows, meta = run_o3("A", WorldConfig(H=8), [0], n_stress=32)
+    rows, meta = run_utility("A", WorldConfig(H=8), [0], n_stress=32)
     kinds = {r["target"] for r in rows}
     assert kinds == {"boltzmann", "worst", "probe_cell", "risk"}
     assert meta[0]["skipped_cells"] >= 0

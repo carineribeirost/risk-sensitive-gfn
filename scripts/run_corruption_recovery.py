@@ -8,11 +8,11 @@ For each (case, world, model, level, condition, arm):
 - crude:      p* from the quantized-TRUE-score fallback oracle, σ = 0
 all scored on the TRUE world: primary = mass on truly-satisfying
 states at the world's challenge level; secondary = TV to the true
-target. The condition set is the o3-style tied (β, ρ) grid with
+target. The condition set is the utility-style tied (β, ρ) grid with
 below-bound cells skipped and reported (no silent caps).
 
 Usage (run machine):
-    python scripts/run_recovery.py --cases A B C D --worlds 4 \
+    python scripts/run_corruption_recovery.py --cases A B C D --worlds 4 \
         --world-seed0 0 --H 32 --models crash bias heavy \
         --levels 0.01 0.05 0.1 0.2 --out results/p2-recovery
 """
@@ -26,15 +26,15 @@ from concurrent.futures import ProcessPoolExecutor
 
 from rsgfn.cases import target_for
 from rsgfn.conditions import Condition, tied_risk
-from rsgfn.corrupt import MODELS, corrupt_world, crude_world
-from rsgfn.o3 import challenge_level, satisfaction_mask
+from rsgfn.corruption import MODELS, corrupt_world, crude_world
+from rsgfn.utility import challenge_level, satisfaction_mask
 from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES, winsorize_scores
 from rsgfn.runio import Progress, unique_run_dir
 from rsgfn.target import tv
 from rsgfn.worlds import WorldConfig, sample_world
 
 SIGMAS = (0.0, 0.05, 0.1, 0.15, 0.2)   # fixed σ grid
-BETA_GRID = (0.15, 0.3, 0.6, 1.0)      # o3 defaults
+BETA_GRID = (0.15, 0.3, 0.6, 1.0)      # utility defaults
 # per-ball rho grids: risk.BALL_RHO_GRIDS (kl = the original grid)
 
 

@@ -288,7 +288,7 @@ class ConditionRanges:
         return Condition(bt, wg, risk)
 
     def heldout_grid(self, n_per_axis: int = 3) -> list[Condition]:
-        """Deterministic grid for O2 evaluation, w_g fixed mid-range;
+        """Deterministic grid for amortization evaluation, w_g fixed mid-range;
         excluded from training by construction (training samples are
         continuous draws, and the trainer additionally rejects draws
         within a ball of these; see train.py). D uses 2 points per risk

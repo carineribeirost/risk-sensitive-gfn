@@ -14,7 +14,7 @@
 # trained sequentially inside each unit.
 #
 # Usage (run box, repo root):
-#   nohup bash scripts/run_s4_fill.sh > s4fill.log 2>&1 &
+#   nohup bash scripts/run_sparse_contrastive_fill.sh > s4fill.log 2>&1 &
 #   tail -f s4fill.log
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -23,24 +23,24 @@ cd "$(dirname "$0")/.."
 # with PY="python3" (or a venv python) on hosts without uv.
 PY=${PY:-uv run python}
 
-RESUME_AB=${RESUME_AB:-results/w33/2026-07-12/090236-16060}
-RESUME_C=${RESUME_C:-results/w33/2026-07-21/054830-46161}
-RESUME_D=${RESUME_D:-results/w33/2026-07-18/185114-5541}
+RESUME_AB=${RESUME_AB:-results/exploration/2026-07-12/090236-16060}
+RESUME_C=${RESUME_C:-results/exploration/2026-07-21/054830-46161}
+RESUME_D=${RESUME_D:-results/exploration/2026-07-18/185114-5541}
 
 LOG=results/s4fill-$(date +%Y%m%d-%H%M%S)
 mkdir -p "$LOG"
 note() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG/decisions.log"; }
 note "log dir: $LOG"
 
-if pgrep -f "scripts/(run|launch)_w33.py" >/dev/null 2>&1; then
-    note "WARNING: a w33 process is already running — its unfinished cells are invisible to the row count below"
+if pgrep -f "scripts/(run|launch)_exploration.py" >/dev/null 2>&1; then
+    note "WARNING: a exploration process is already running — its unfinished cells are invisible to the row count below"
 fi
 
 # how many contrastive s=4.0 rows already exist per case
 counts=$(python3 - <<'EOF'
 import csv, glob
 seen = {}
-for p in glob.glob("results/w33/**/w33_runs.csv", recursive=True):
+for p in glob.glob("results/exploration/**/exploration_runs.csv", recursive=True):
     try:
         for r in csv.DictReader(open(p)):
             if r.get("sparsity") == "4.0" and r.get("arm") == "contrastive" \
@@ -62,7 +62,7 @@ launch() {  # name, needed, have, launcher args...
         return
     fi
     note "$name: $have/$needed cells — launching"
-    $PY scripts/launch_w33.py "$@" \
+    $PY scripts/launch_exploration.py "$@" \
         --arms contrastive --sparsity 4.0 \
         --trust-recorded-gates --threads-per-job 2 --device cuda \
         > "$LOG/launch_$name.log" 2>&1 &
@@ -92,8 +92,8 @@ for l in "$LOG"/launch_*.log; do
     [ -e "$l" ] || continue
     dir=$(grep -m1 "^run dir: " "$l" | cut -d' ' -f3-)
     note "$(basename "$l" .log): run dir $dir"
-    [ -n "$dir" ] && [ -f "$dir/w33_summary.json" ] \
-        && cat "$dir/w33_summary.json" | tee -a "$LOG/decisions.log" \
+    [ -n "$dir" ] && [ -f "$dir/exploration_summary.json" ] \
+        && cat "$dir/exploration_summary.json" | tee -a "$LOG/decisions.log" \
         || note "  (no merged summary — see fragment CSVs under $dir)"
 done
 note "done (rc=$rc)."

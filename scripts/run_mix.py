@@ -1,5 +1,5 @@
 """Off-policy mix sweep. Loop TrainConfig.uniform_mix over
-{0, 0.25, 0.5, 1.0} at the canonical config; the claim "O2 measures
+{0, 0.25, 0.5, 1.0} at the canonical config; the claim "amortization measures
 amortization, not exploration" requires mix=0.5 ~= mix=1.0 and both
 >= mix=0. Heldout L1 per mix with cluster CIs; floors reused per
 world across mixes.

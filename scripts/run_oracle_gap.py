@@ -136,7 +136,7 @@ def main() -> None:
         for wi in range(args.worlds):
             known = prior_worlds.get(args.world_seed0 + wi)
             if known is not None:
-                # gate fast-path (as in run_w33): make_world(recorded
+                # gate fast-path (as in run_exploration): make_world(recorded
                 # seed) IS the world the deterministic chain returns;
                 # one is_hard probe verifies the record matches this
                 # config before hours of attempts are skipped

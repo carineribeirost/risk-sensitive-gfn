@@ -1,6 +1,6 @@
 """Per-case figure: the exact target vs what each training arm reaches.
 
-Six panels: the analytic target p* at the w33 fixed condition (the
+Six panels: the analytic target p* at the exploration fixed condition (the
 condition every arm was trained on) and the five arms' exact
 terminating densities (dens_*.npy saved by the density patch; these
 store grid log P_F: exp before use). The 4^8 sequence space renders
@@ -28,7 +28,7 @@ from matplotlib.colors import LogNorm  # noqa: E402
 
 from rsgfn.cases import log_reward  # noqa: E402
 from rsgfn.target import l1, p_star  # noqa: E402
-from rsgfn.w33 import ARMS, fixed_condition, mode_indices  # noqa: E402
+from rsgfn.exploration import ARMS, fixed_condition, mode_indices  # noqa: E402
 from rsgfn.worlds import WorldConfig, make_world  # noqa: E402
 
 CASE_TITLE = {"A": "smooth", "B": "floor", "C": "veto", "D": "nested"}

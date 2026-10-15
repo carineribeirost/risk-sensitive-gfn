@@ -2,8 +2,8 @@
 2-step implementation bit-for-bit at d=2.
 
 Two independent guards:
-1. Golden-file test: `tests/data/w31_golden.npz` was captured from the
-   old 2-step-hardcoded code by `make_w31_golden.py` (committed). Init
+1. Golden-file test: `tests/data/policy_golden.npz` was captured from the
+   old 2-step-hardcoded code by `make_policy_golden.py` (committed). Init
    weights, exact densities, sampler draws, and a short pooled-TB
    training trace must match EXACTLY (same machine class; if a different
    BLAS ever breaks bitwise equality on the forward/training arrays,
@@ -27,7 +27,7 @@ from rsgfn.policy import ConditionalPolicy
 from rsgfn.train import TrainConfig, train_policy
 from rsgfn.worlds import WorldConfig, sample_world
 
-GOLDEN = "tests/data/w31_golden.npz"
+GOLDEN = "tests/data/policy_golden.npz"
 KEYMAP = {"x1_embed.weight": "coord_embed.weight"}
 
 

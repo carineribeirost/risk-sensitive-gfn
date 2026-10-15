@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #
-# One-shot resumable runner for the whole rebuttal battery.
+# One-shot resumable runner for the whole robustness battery.
 #
-#   bash scripts/run_rebuttal_queue.sh
+#   bash scripts/run_robustness_queue.sh
 #
 # Detached under tmux (preferred):
 #   tmux new-session -d -s queue \
-#     "PY=.venv/bin/python bash scripts/run_rebuttal_queue.sh 2>&1 | tee queue.log"
+#     "PY=.venv/bin/python bash scripts/run_robustness_queue.sh 2>&1 | tee queue.log"
 #
 # ---------------------------------------------------------------- tuning
 #
-# The w33 launcher fans out over WORLDS, so a single fragment never uses
+# The exploration launcher fans out over WORLDS, so a single fragment never uses
 # more than 4 workers. On a big box the win comes from running several
 # FRAGMENTS at once, which FRAG_PAR controls.
 #
@@ -116,10 +116,10 @@ preflight() {
     warn "'$PY' cannot import torch. Try PY=.venv/bin/python"; bad=1; }
   # Without these the battery reproduces exactly the number the reviewer
   # objected to, at a cost of tens of GPU-hours.
-  grep -q policy_coverage rsgfn/w33.py || {
-    warn "rsgfn/w33.py has no policy_coverage; the tree is behind. git pull."; bad=1; }
-  grep -q target_coverage scripts/run_w33.py || {
-    warn "scripts/run_w33.py does not write target_coverage. git pull."; bad=1; }
+  grep -q policy_coverage rsgfn/exploration.py || {
+    warn "rsgfn/exploration.py has no policy_coverage; the tree is behind. git pull."; bad=1; }
+  grep -q target_coverage scripts/run_exploration.py || {
+    warn "scripts/run_exploration.py does not write target_coverage. git pull."; bad=1; }
   [ -f rsgfn/baselines.py ] || { warn "rsgfn/baselines.py missing. git pull."; bad=1; }
 
   "$PY" - <<'EOF' 2>/dev/null || warn "GPU query failed; continuing"
@@ -168,7 +168,7 @@ run_one() {
       flock 9
       git add -f "$outdir" 2>/dev/null
       git diff --cached --quiet || {
-        git commit -q -m "rebuttal runs: $name"
+        git commit -q -m "robustness runs: $name"
         [ "$AUTOPUSH" = "1" ] && git push -q origin main 2>/dev/null
         echo "      committed $outdir"
       }
@@ -213,12 +213,12 @@ preflight
 R5_PID=""
 if wanted R5 && [ ! -f "$STATE/R5.done" ] && [ "$DRYRUN" != "1" ]; then
   say "R5 (baselines, CPU) in background"
-  ( run_one R5 results/o3-baselines \
-      "$PY" scripts/run_o3.py --cases A B C D --worlds 8 --world-seed0 0 \
+  ( run_one R5 results/utility-baselines \
+      "$PY" scripts/run_utility.py --cases A B C D --worlds 8 --world-seed0 0 \
         --H 32 --d 2 --geometry grid --ball kl \
         --n-stress 500 --kappa 25.0 --kappa-range 8.0 60.0 --contam-eps 0.2 \
         --baselines geometric desirability hard_min --skip-grid \
-        --jobs 6 --out results/o3-baselines ) > "$LOGS/R5.outer" 2>&1 &
+        --jobs 6 --out results/utility-baselines ) > "$LOGS/R5.outer" 2>&1 &
   R5_PID=$!
 fi
 wanted R5 && ALL_STEPS+=("R5")
@@ -228,14 +228,14 @@ wanted R5 && ALL_STEPS+=("R5")
 say "R6 coverage battery (FRAG_PAR=$FRAG_PAR, JOBS_SEQ=$JOBS_SEQ)"
 for S in 4.0 1.0; do
   for C in A B C D; do
-    slot "R6_${C}_s${S}" results/w33-cov \
-      "$PY" scripts/launch_w33.py --cases "$C" --sparsity "$S" \
+    slot "R6_${C}_s${S}" results/exploration-cov \
+      "$PY" scripts/launch_exploration.py --cases "$C" --sparsity "$S" \
         --arms onpolicy mix replay teacher contrastive \
         --worlds 4 --seeds 3 --world-seeds 0 100003 200006 300009 \
         --trust-recorded-gates --H 4 --d 8 --geometry sequence \
         --steps 12000 --n-points 64 --eval-every 200 \
         --save-grids --jobs "$JOBS_SEQ" --threads-per-job "$THREADS" \
-        --out results/w33-cov
+        --out results/exploration-cov
   done
 done
 [ "$DRYRUN" = "1" ] || wait
@@ -321,15 +321,15 @@ step R7_sigma results/sigma-stress \
 # so the boundary is unmoved and only the plateau goes. The floor case at
 # high sparsity is where the collapse was, so that is what it tests.
 say "R8 graded-penalty ablation"
-step R8_B_s4_graded results/w33-graded \
-  "$PY" scripts/launch_w33.py --cases B --sparsity 4.0 \
+step R8_B_s4_graded results/exploration-graded \
+  "$PY" scripts/launch_exploration.py --cases B --sparsity 4.0 \
     --arms onpolicy mix replay teacher contrastive \
     --worlds 4 --seeds 3 --world-seeds 0 100003 200006 300009 \
     --trust-recorded-gates --H 4 --d 8 --geometry sequence \
     --steps 12000 --n-points 64 --eval-every 200 \
     --graded-kappa 5.0 --save-grids \
     --jobs "$JOBS_SEQ" --threads-per-job "$THREADS" \
-    --out results/w33-graded
+    --out results/exploration-graded
 
 # R9: width sweep on the binding case, the other half of R4. Two widths
 # either side of the default settle whether the oracle's shortfall is

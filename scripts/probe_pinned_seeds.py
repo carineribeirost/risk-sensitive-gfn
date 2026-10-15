@@ -9,7 +9,7 @@ this evaluates only the named raw seeds, one gate attempt each
 (itself ~hours for sequence-D) instead of the 60+-attempt chain.
 
 Exit code 0 iff every seed passes, so it works as a launch
-precondition before run_w33.py/launch_w33.py --world-seeds.
+precondition before run_exploration.py/launch_exploration.py --world-seeds.
 
 Usage (D s=4.0, the four s=1.0-hard worlds; pinning them is a
 protocol change: paired worlds across sparsity; log it):
@@ -31,7 +31,7 @@ def main() -> None:
 
     Parses CLI args, rebuilds each --world-seeds entry under (case,
     cfg), prints its hardness probes against threshold, and exits 0
-    iff every seed passes (so this can gate run_w33.py/launch_w33.py
+    iff every seed passes (so this can gate run_exploration.py/launch_exploration.py
     invocations).
     """
     ap = argparse.ArgumentParser()
@@ -40,7 +40,7 @@ def main() -> None:
     ap.add_argument("--world-seeds", type=int, nargs="+",
                     required=True,
                     help="raw world seeds (base*100003+attempt), as "
-                    "recorded in a w33_runs.csv 'world' column")
+                    "recorded in a exploration_runs.csv 'world' column")
     ap.add_argument("--H", type=int, default=4)
     ap.add_argument("--d", type=int, default=8)
     ap.add_argument("--geometry", default="sequence",

@@ -7,7 +7,7 @@ from rsgfn.train import TrainConfig, ranges_for, train_policy
 from rsgfn.worlds import WorldConfig, make_world
 
 
-def test_shrink_geometry():
+def test_range_extrapolation_geometry():
     """shrink narrows beta_t/w_g/rho/delta/beta axes as specified while leaving
     the original ranges untouched."""
     r = ConditionRanges(case="B", beta_bounds={"p": 0.1, "m": 0.2})

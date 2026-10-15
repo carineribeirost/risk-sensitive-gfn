@@ -3,7 +3,7 @@
 #
 # Every stage here is CPU-only except the last, and the whole script is under
 # half an hour on a laptop. The training batteries are separate: see
-# scripts/run_rebuttal_queue.sh and scripts/run_paper_battery.sh.
+# scripts/run_robustness_queue.sh and scripts/run_paper_battery.sh.
 #
 # Usage:  ./reproduce.sh            all stages
 #         ./reproduce.sh 3          one stage
@@ -34,10 +34,10 @@ stage 2 "seconds, CPU" "the DRO-CVaR duals against brute force" && {
 
 stage 3 "about a minute, CPU" \
       "our composition against the geometric mean, hard minimum, desirability" && {
-    "$PY" scripts/run_o3.py --cases A B C D --worlds 8 --world-seed0 0 \
+    "$PY" scripts/run_utility.py --cases A B C D --worlds 8 --world-seed0 0 \
         --H 32 --d 2 --geometry grid --skip-grid \
         --baselines geometric desirability hard_min \
-        --out results/o3-baselines
+        --out results/utility-baselines
 }
 
 stage 4 "about 20 minutes, CPU" \
@@ -48,8 +48,8 @@ stage 4 "about 20 minutes, CPU" \
 }
 
 stage 5 "tens of minutes, GPU preferred" "one short conditional-policy run" && {
-    "$PY" scripts/run_o2.py --case A --worlds 4 --seeds 3 \
-        --H 32 --steps 4000 --out results/o2
+    "$PY" scripts/run_amortization.py --case A --worlds 4 --seeds 3 \
+        --H 32 --steps 4000 --out results/amortization
 }
 
 printf '\ndone. outputs are under results/, each in its own timestamped\n'

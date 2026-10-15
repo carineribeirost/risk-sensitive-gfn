@@ -23,7 +23,7 @@ from scipy.optimize import linprog, minimize
 
 from rsgfn.cases import psi_and_masks
 from rsgfn.conditions import ConditionRanges, RiskA, RiskD, tied_risk
-from rsgfn.o1 import o1_grid, o1_rho_out_sep, o1_separability
+from rsgfn.separability import separability_grid, separability_rho_out_sep, target_separability
 from rsgfn.risk import (GEOMETRIES, _sup_chi2_linear, _sup_tv_linear,
                         cvar_lower, dro_cvar_lower, dro_cvar_upper,
                         nested_dro_cvar)
@@ -360,7 +360,7 @@ def test_nested_chi2_crude_world_targets_finite():
     # end-to-end: the exact configuration that produced the NaN
     from rsgfn.cases import target_for
     from rsgfn.conditions import Condition
-    from rsgfn.corrupt import crude_world
+    from rsgfn.corruption import crude_world
     world, _ = sample_world("D", WorldConfig(H=8), seed=1)
     cw = crude_world(world)
     for b, r in ((0.3, 1.0), (0.3, 3.0), (0.6, 0.3)):
@@ -438,29 +438,29 @@ def test_use_guard_delta_conditioning():
             np.random.default_rng(0))
 
 
-def test_guarded_a_o1_separability_rows():
-    """o1_separability emits per-delta separability rows for a guarded Case A
+def test_guarded_a_target_separability_rows():
+    """target_separability emits per-delta separability rows for a guarded Case A
     world, and stays empty for a guard-free world."""
     world, _ = sample_world("A", WorldConfig(H=8, k_guard=2), seed=0)
-    rows = o1_separability(world, beta_grid=[0.5, 1.0],
+    rows = target_separability(world, beta_grid=[0.5, 1.0],
                            rho_grid=[0.0, 0.5], n_delta=3)
     assert rows and all(r["case"] == "A" and "delta" in r for r in rows)
     assert all(r["tv_to_shared"] >= 0 for r in rows)
     # guard-free A stays empty (same as before the guard axis existed)
     bare, _ = sample_world("A", WorldConfig(H=8), seed=0)
-    assert o1_separability(bare, beta_grid=[0.5, 1.0],
+    assert target_separability(bare, beta_grid=[0.5, 1.0],
                            rho_grid=[0.0, 0.5]) == []
 
 
-# ------------------------------------------------------------ O1 report probes
+# ------------------------------------------------------------ separability report probes
 
 
-def test_o1_rho_out_probe_anchor_and_liveness():
-    """o1_rho_out_sep probes rho_out on Case D, anchoring at the world's
+def test_separability_rho_out_probe_anchor_and_liveness():
+    """separability_rho_out_sep probes rho_out on Case D, anchoring at the world's
     constant, and returns no rows for non-D cases."""
     world, _ = sample_world("D", WorldConfig(H=8), seed=0)
     grid = (0.0, 0.3, 1.2)  # 0.3 = the world constant → exact anchor
-    rows = o1_rho_out_sep(world, beta_grid=[0.55, 1.0],
+    rows = separability_rho_out_sep(world, beta_grid=[0.55, 1.0],
                           rho_grid=[0.0, 0.5, 1.6], rho_out_grid=grid)
     by_ro = {r["rho_out"]: r["tv_to_shared_rho_out"] for r in rows}
     assert set(by_ro) == set(grid)
@@ -468,15 +468,15 @@ def test_o1_rho_out_probe_anchor_and_liveness():
     assert all(r["probe"] == "rho_out" for r in rows)
     # non-D cases: no rows
     wa, _ = sample_world("A", WorldConfig(H=8), seed=0)
-    assert o1_rho_out_sep(wa, [0.5, 1.0], [0.0, 0.5], grid) == []
+    assert separability_rho_out_sep(wa, [0.5, 1.0], [0.0, 0.5], grid) == []
 
 
-def test_o1_grid_ball_threading():
-    """o1_grid threads the requested ball (kl vs tv) through, agreeing at rho=0
+def test_separability_grid_ball_threading():
+    """separability_grid threads the requested ball (kl vs tv) through, agreeing at rho=0
     and diverging at rho>0."""
     world, _ = sample_world("A", WorldConfig(H=8), seed=0)
-    kl = o1_grid(world, beta_grid=[0.5], rho_grid=[0.0, 0.4])
-    tvb = o1_grid(world, beta_grid=[0.5], rho_grid=[0.0, 0.4],
+    kl = separability_grid(world, beta_grid=[0.5], rho_grid=[0.0, 0.4])
+    tvb = separability_grid(world, beta_grid=[0.5], rho_grid=[0.0, 0.4],
                   ball="tv")
     assert all(r["ball"] == "kl" for r in kl)
     assert all(r["ball"] == "tv" for r in tvb)

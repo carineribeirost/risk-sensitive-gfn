@@ -15,9 +15,9 @@ against exact targets.
 | `rsgfn/target.py` | `p*`, TV/L1, Monte-Carlo finite-sample floor |
 | `rsgfn/policy.py` | conditional policy (FiLM MLP), `log Z(c)` head, exact density enumeration |
 | `rsgfn/train.py` | trajectory-balance training, held-out exclusion, exact evaluation |
-| `rsgfn/o1.py`, `scripts/run_o1.py` | O1 sweep driver (vs Boltzmann and worst-case poles) |
-| `rsgfn/o3.py`, `scripts/run_o3.py` | O3 extension: joint-satisfaction utility + stress test vs both poles |
-| `scripts/run_o2.py` | O2 driver: (world, seed) grid, floor-referenced L1, bootstrap CI |
+| `rsgfn/separability.py`, `scripts/run_separability.py` | separability sweep driver (vs Boltzmann and worst-case poles) |
+| `rsgfn/utility.py`, `scripts/run_utility.py` | joint-satisfaction utility + stress test vs both poles |
+| `scripts/run_amortization.py` | amortization driver: (world, seed) grid, floor-referenced L1, bootstrap CI |
 | `rsgfn/stats.py` | cluster bootstrap, cluster permutation test, TOST |
 
 ## Setup
@@ -28,37 +28,38 @@ python3 -m venv .venv
 .venv/bin/python -m pytest        # oracle test suite
 ```
 
-Device-agnostic; CPU works for tests and the O1/O3 exact sweeps. For
+Device-agnostic; CPU works for tests and the separability/utility exact sweeps. For
 GPU training, install a CUDA build of PyTorch >= 2.9 before the
 editable install.
 
 ## Running
 
 ```bash
-# O1: exact sweeps, no training (minutes, CPU)
-.venv/bin/python scripts/run_o1.py --cases A B C D --worlds 8 --H 32
+# separability: exact sweeps, no training (minutes, CPU)
+.venv/bin/python scripts/run_separability.py --cases A B C D --worlds 8 --H 32
 
-# O2: conditional-policy amortization per case
-.venv/bin/python scripts/run_o2.py --case A --worlds 4 --seeds 3 \
+# amortization: conditional-policy amortization per case
+.venv/bin/python scripts/run_amortization.py --case A --worlds 4 --seeds 3 \
     --H 32 --steps 4000
 ```
 
 ```bash
-# O3: is risk-on BETTER than the Boltzmann / worst-case poles at the
+# utility: is risk-on BETTER than the Boltzmann / worst-case poles at the
 # declared utility (joint satisfaction of all states + constraints)?
-.venv/bin/python scripts/run_o3.py --cases A B C D --worlds 3 --H 16
+.venv/bin/python scripts/run_utility.py --cases A B C D --worlds 3 --H 16
 ```
 
 Each invocation writes into its own timestamped subdirectory of
 `--out` (with an `args.json` manifest), so concurrent launches never
 overwrite each other.
 
-## O3: joint-satisfaction utility
+## Joint-satisfaction utility
 
-O1/O2 prove the targets are *distinct* and *amortizable*; they cannot
-say "better" because `p*_c` itself defines the goal. O3 adds a
-declared utility: **generate objects that jointly satisfy all active
-states and the case's structural conditions**: every good state ≥ t,
+The separability and amortization experiments show the targets are
+*distinct* and *amortizable*; they cannot say "better" because `p*_c`
+itself defines the goal. The utility experiment adds a declared
+utility: **generate objects that jointly satisfy all active states and
+the case's structural conditions**: every good state ≥ t,
 every penalise state ≤ 1 − t, no veto (the Case-B floor is
 reward-shaping on Φ, hence method-dependent, and deliberately excluded
 from the utility). Per target (Boltzmann pole, worst-case pole, risk-on
@@ -105,7 +106,7 @@ hardest level at which ≥1% of X still satisfies.
    draw, same family as the scores, nothing engineered);
    `WorldConfig(g_iid=True)` switches to i.i.d. uniform.
 7. **TB off-policy mix.** Each batch is 50% on-policy / 50% uniform
-   over X, so O2 measures amortization capacity, not exploration.
+   over X, so amortization measures amortization capacity, not exploration.
    `log Z` is a head on the condition embedding (never a scalar) with
    10× the trunk learning rate.
 8. **Held-out conditions.** Deterministic grid per world; training

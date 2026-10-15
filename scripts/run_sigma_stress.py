@@ -1,8 +1,8 @@
 """Which knob absorbs which error? Exact, training-free, CPU-only.
 
-The shipped O3 stress model perturbs only the WEIGHTS (populations), so
+The shipped utility stress model perturbs only the WEIGHTS (populations), so
 the score fields the CVaR tail is selected from are exact. Measured
-consequence on the o3-pareto run: the radius that maximises stress_p05
+consequence on the utility-pareto run: the radius that maximises stress_p05
 sits at rho = 0 on A, C and D (median over 8 worlds) and at 0.05 on B,
 and it does not track the size of the actual perturbation (Spearman
 p >= 0.19 in every case, implied E[KL(nu||w)] spanning 0.037-0.216).
@@ -21,7 +21,7 @@ Design
 The designer sees nominal (w, a) and commits to a target p from a rule
 cell (beta, rho, sigma). The truth is (nu, a'):
 
-    nu ~ Dirichlet(kappa_o * w_o)          population error (as O3)
+    nu ~ Dirichlet(kappa_o * w_o)          population error (as utility)
     a' = clip(a + N(0, s), 0, 1)           score error      (new)
 
 and the yardstick is the realised PLAIN weighted mean under the truth,
@@ -38,7 +38,7 @@ shared across every rule cell within a world, so all comparisons are
 paired; U depends only on (world, error model, s), never on the cell, so
 it is built once and re-used across the whole grid.
 
-Worlds, kappa draws and stress draws reproduce the o3-pareto run exactly
+Worlds, kappa draws and stress draws reproduce the utility-pareto run exactly
 at its defaults (--world-seed0 0 --worlds 8 --H 32 --d 2), so the
 sigma = 0, model = "weights" slice must reproduce that run's stress
 columns cell for cell. That identity is the script's own control.
@@ -64,7 +64,7 @@ import numpy as np
 
 from rsgfn.cases import target_for
 from rsgfn.conditions import Condition, tied_risk
-from rsgfn.o3 import (challenge_level, contamination_metrics, draw_stress,
+from rsgfn.utility import (challenge_level, contamination_metrics, draw_stress,
                       satisfaction_mask)
 from rsgfn.risk import BALL_RHO_GRIDS, GEOMETRIES
 from rsgfn.runio import Progress, unique_run_dir, write_csv
@@ -151,7 +151,7 @@ def run_unit(case, cfg, ws, betas, rhos, sigmas, s_scores, n_stress,
     """One (case, world) unit. Fully determined by its seed, so the pool
     equals the sequential run byte-for-byte."""
     world, attempts = sample_world(case, cfg, ws, gate=gate)
-    # identical stream to run_o3: kappa THEN the stress draws
+    # identical stream to run_utility: kappa THEN the stress draws
     rng = np.random.default_rng(10_000 + ws)
     lo, hi = kappa_range
     kap = {k: float(np.exp(rng.uniform(np.log(lo), np.log(hi))))
@@ -234,7 +234,7 @@ def main() -> None:
     ap.add_argument("--cases", nargs="+", default=["A", "B", "C", "D"])
     ap.add_argument("--worlds", type=int, default=8)
     ap.add_argument("--world-seed0", type=int, default=0,
-                    help="0 reproduces the o3-pareto worlds exactly")
+                    help="0 reproduces the utility-pareto worlds exactly")
     ap.add_argument("--H", type=int, default=32)
     ap.add_argument("--d", type=int, default=2)
     ap.add_argument("--geometry", default="grid",

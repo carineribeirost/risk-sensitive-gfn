@@ -7,9 +7,9 @@ run): R1 teacher dominates on-policy mode discovery at high sparsity;
 R2 the advantage shrinks at sparsity 1; R3 replay in between.
 
 Usage (dev battery):
-    python scripts/run_w33.py --cases A B C D --sparsity 1.0 4.0 \
+    python scripts/run_exploration.py --cases A B C D --sparsity 1.0 4.0 \
         --arms onpolicy mix replay teacher --worlds 4 --seeds 3 \
-        --H 4 --d 8 --steps 12000 --out results/w33
+        --H 4 --d 8 --steps 12000 --out results/exploration
 """
 
 import argparse
@@ -25,7 +25,7 @@ from rsgfn.runio import Progress, unique_run_dir
 from rsgfn.stats import cluster_bootstrap_ci
 from rsgfn.target import p_star
 from rsgfn.train import TrainConfig, default_device
-from rsgfn.w33 import ARMS, fixed_condition, run_arm, samples_to_frac
+from rsgfn.exploration import ARMS, fixed_condition, run_arm, samples_to_frac
 from rsgfn.worlds import WorldConfig, is_hard, make_world, sample_world
 
 
@@ -36,9 +36,9 @@ def main() -> None:
     completed trainings and --world-seeds/--trust-recorded-gates to
     skip re-gating known worlds), trains every (case, sparsity, world,
     arm, seed) combination, streaming per-training metrics to
-    `w33_runs.csv` plus a history JSON and terminating-density `.npy`
+    `exploration_runs.csv` plus a history JSON and terminating-density `.npy`
     for each fresh training, and writes a cluster-bootstrap summary of
-    frac_modes by (case, sparsity, arm) to `w33_summary.json`.
+    frac_modes by (case, sparsity, arm) to `exploration_summary.json`.
     """
     ap = argparse.ArgumentParser()
     ap.add_argument("--cases", nargs="+", default=["A", "B", "C", "D"])
@@ -72,7 +72,7 @@ def main() -> None:
                     "futile if the failing criterion is structural)")
     ap.add_argument("--device", default=default_device())
     ap.add_argument("--resume", default=None,
-                    help="path to a stopped run's w33_runs.csv (or the "
+                    help="path to a stopped run's exploration_runs.csv (or the "
                     "dir containing it): completed (case, sparsity, "
                     "world, arm, seed) trainings are COPIED instead of "
                     "retrained; the new run dir ends complete. Args "
@@ -105,7 +105,7 @@ def main() -> None:
                     "verification IS the hardness probe.")
     ap.add_argument("--teacher-c", type=float, default=19.0,
                     help="weight on undersampled states in the teacher "
-                    "reward, eq. (5) of rsgfn.w33's docstring; 19 is "
+                    "reward, eq. (5) of rsgfn.exploration's docstring; 19 is "
                     "the cited paper's value for every task, 0 "
                     "reduces to the bare eq. (4)")
     ap.add_argument("--teacher-alpha", type=float, default=0.0,
@@ -122,7 +122,7 @@ def main() -> None:
                     "log-density over X, with the target, to "
                     "<out>/grids/*.npz. Makes every coverage "
                     "quantity recomputable without retraining.")
-    ap.add_argument("--out", default="results/w33")
+    ap.add_argument("--out", default="results/exploration")
     args = ap.parse_args()
 
     prior = {}
@@ -130,9 +130,9 @@ def main() -> None:
     if args.resume:
         p = pathlib.Path(args.resume)
         if p.is_dir():
-            hits = sorted(p.glob("**/w33_runs.csv"))
+            hits = sorted(p.glob("**/exploration_runs.csv"))
             if not hits:
-                raise SystemExit(f"--resume: no w33_runs.csv under {p}")
+                raise SystemExit(f"--resume: no exploration_runs.csv under {p}")
             p = hits[-1]
         with open(p) as fh:
             for r in csv.DictReader(fh):
@@ -178,8 +178,8 @@ def main() -> None:
               "final_l1", "final_loss", "wall_s"]
     rows = []
     prog = Progress(len(args.cases) * len(args.sparsity) * args.worlds
-                    * len(args.arms) * args.seeds, "w33")
-    with open(out / "w33_runs.csv", "w", newline="") as fh:
+                    * len(args.arms) * args.seeds, "exploration")
+    with open(out / "exploration_runs.csv", "w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields)
         writer.writeheader()
         fh.flush()
@@ -354,7 +354,7 @@ def main() -> None:
                         [r["samples_to_80"] for r in sel])),
                     "edge_share_mean": float(np.mean(
                         [r["edge_share"] for r in sel]))}
-    with open(out / "w33_summary.json", "w") as fh:
+    with open(out / "exploration_summary.json", "w") as fh:
         json.dump(summary, fh, indent=2)
     print(json.dumps(summary, indent=2))
 

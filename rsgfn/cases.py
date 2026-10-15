@@ -193,7 +193,7 @@ def target_for(world: World, cond: Condition) -> np.ndarray:
 
 def mean_mc_floor(world: World, heldout, n_floor: int) -> float:
     """Mean MC floor over a held-out condition grid, RNG seeded from
-    the world (shared by run_o2/run_mix/run_oracle_gap/probe_convergence)."""
+    the world (shared by run_amortization/run_mix/run_oracle_gap/probe_convergence)."""
     floor_rng = np.random.default_rng(world.seed)
     return float(np.mean([mc_floor(target_for(world, c), n_floor, floor_rng)
                           for c in heldout]))
@@ -239,7 +239,7 @@ def target_worst(world: World, cond: Condition) -> np.ndarray:
 
 
 def nested_vs_flat_tv(world: World, cond: Condition) -> float:
-    """Case D, O1: TV between the nested target and the flattened
+    """Case D, separability: TV between the nested target and the flattened
     single-level aggregation over all (o, k) states. The
     flat comparison uses the condition's β_in and the mean of its
     per-origin radii as the single (β, ρ) pair."""

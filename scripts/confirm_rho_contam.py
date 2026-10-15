@@ -1,7 +1,7 @@
 """Confirmatory test: does the ambiguity ball move the rare-state
 contamination guarantee?
 
-Motivation. On an earlier 8-world o3-pareto run the paired effect of
+Motivation. On an earlier 8-world utility-pareto run the paired effect of
 the ball on case B's contamination worst case (rho: 0 -> 0.5 at fixed
 (world, beta), at each world's own t*) was +0.018 mean, positive in
 5/8 worlds, cluster sign-flip p = 0.27, d = 0.43: directional, not
@@ -12,11 +12,11 @@ per world, so worlds 0..7 reproduce byte-for-byte and the original run
 embeds in the new one).
 
 Launch:
-    python scripts/run_o3.py --cases A B C D --worlds 40 \
+    python scripts/run_utility.py --cases A B C D --worlds 40 \
         --beta-grid 0.1 0.15 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 \
         --rho-grid 0.0 0.05 0.1 0.15 0.2 0.3 0.5 0.8 1.2 \
         --n-stress 500 --kappa-range 8 60 --contam-eps 0.2 \
-        --jobs 16 --out results/o3-pareto-w40
+        --jobs 16 --out results/utility-pareto-w40
 
 Pre-registered analysis (this script):
   PRIMARY (confirmatory): case B, per-world mean paired delta of
@@ -30,7 +30,7 @@ Pre-registered analysis (this script):
   here, before the run; changing them afterwards is a deviation.
 
 Usage after the run:
-    python scripts/confirm_rho_contam.py results/o3-pareto-w40/DATE/RUN
+    python scripts/confirm_rho_contam.py results/utility-pareto-w40/DATE/RUN
 """
 
 import csv
@@ -45,7 +45,7 @@ RHO_LO, RHO_HI = 0.0, 0.5   # registered pair
 
 def per_world_deltas(run_dir, case, key):
     rows = []
-    with open(pathlib.Path(run_dir) / f"o3_case{case}.csv") as fh:
+    with open(pathlib.Path(run_dir) / f"utility_case{case}.csv") as fh:
         rows = list(csv.DictReader(fh))
     tstar = {r["world_seed"]: r["t_star"] for r in rows}
     star = [r for r in rows if r["t"] == tstar[r["world_seed"]]
