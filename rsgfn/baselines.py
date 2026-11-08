@@ -4,8 +4,10 @@ A conjunctive rule that concentrates mass on conjunctively good
 candidates is close to definitional, so beating a weighted mean alone
 is weak evidence that *this* conjunctive rule is the right one. The
 answer is a comparison at matched conjunctivity: same worlds, same
-auxiliary objective, same exclusions, same temperature, with only the
-aggregation Ψ replaced.
+auxiliary objective, same exclusion rules, same temperature, with only
+the aggregation Ψ replaced. The veto is unchanged; the floor is placed
+at the same quantile of each rule's own aggregate, since the rules
+score on different scales.
 
 Three rules:
 
@@ -86,11 +88,14 @@ def psi_baseline(world: World, kind: str, idx=None, *,
                  shape: float = 1.0):
     """(psi, floor_ok, veto_ok) under a non-DRO aggregation.
 
-    Floor and veto semantics are preserved exactly as in
-    `cases.psi_worst_case`: the floor is applied to the promoted
-    aggregate, the veto at the nominal thresholds with delta = 0, so
-    the geometry of each case is untouched and only the pooling
-    changes.
+    Floor and veto semantics follow `cases.psi_worst_case`: the floor
+    is applied to the promoted aggregate, the veto at the nominal
+    thresholds with delta = 0, so the geometry of each case is
+    untouched and only the pooling changes. The floor is matched by
+    quantile rather than by value: it sits at the same quantile
+    (`cfg.floor_quantile`) of this rule's own promoted aggregate over
+    all of X, so every rule fails the floor on the same share of the
+    space.
     """
     if kind == "hard_min":
         return psi_worst_case(world, idx)
@@ -121,7 +126,16 @@ def psi_baseline(world: World, kind: str, idx=None, *,
                      world.q_minus)
         psi = lo_agg - cfg.gamma * hi_agg
         if cfg.use_floor:
-            floor_ok = lo_agg >= world.floor_value
+            # `world.floor_value` is a quantile of the DRO-CVaR
+            # aggregate. A geometric or desirability aggregate lives on
+            # a different scale, so testing it against that number
+            # would exclude candidates for scoring on a smaller scale
+            # rather than for failing. Take the same quantile of this
+            # rule's own aggregate instead.
+            full_lo = agg(world.scores_plus, world.scores_plus,
+                          world.p_plus)
+            floor_ok = lo_agg >= float(np.quantile(full_lo,
+                                                   cfg.floor_quantile))
     elif world.case == "C":
         psi = agg(world.scores_plus, _sl(world.scores_plus, idx),
                   world.p_plus)
@@ -141,11 +155,21 @@ def psi_baseline(world: World, kind: str, idx=None, *,
 
 def target_baseline(world: World, cond: Condition, kind: str, *,
                     lo_q: float = 0.50, hi_q: float = 0.95,
-                    shape: float = 1.0) -> np.ndarray:
+                    shape: float = 1.0, with_frac: bool = False):
     """Exact target under a baseline aggregation. Ignores cond's risk
     block; everything else about the reward is shared with the risk
-    targets, which is what makes the comparison matched."""
+    targets, which is what makes the comparison matched.
+
+    With `with_frac=True`, returns (p, frac_penalised), where
+    frac_penalised is the share of X that fails the floor or a veto
+    and so receives the reward EPS_REWARD through the masks. Candidates
+    whose reward reaches EPS_REWARD through the clamp max(base,
+    EPS_REWARD) are not counted.
+    """
     psi, floor_ok, veto_ok = psi_baseline(
         world, kind, lo_q=lo_q, hi_q=hi_q, shape=shape)
     log_r = log_reward_from(world, cond, psi, floor_ok, veto_ok)
-    return p_star(log_r, cond.beta_t)
+    p = p_star(log_r, cond.beta_t)
+    if with_frac:
+        return p, float(1.0 - np.mean(floor_ok & veto_ok))
+    return p

@@ -90,6 +90,28 @@ def test_case_geometry_is_preserved(case):
         assert floor_b.all()
 
 
+@pytest.mark.parametrize("kind", ("geometric", "desirability"))
+def test_floor_is_matched_by_quantile(kind):
+    """Case B's floor sits at the same quantile of each rule's own
+    aggregate, so a rule on a smaller scale is not floored for its
+    scale alone: the failing share matches the configured quantile."""
+    w = _world("B")
+    _, floor_ok, _ = psi_baseline(w, kind)
+    assert np.mean(~floor_ok) == pytest.approx(CFG.floor_quantile,
+                                               abs=2.0 / w.n_points)
+
+
+@pytest.mark.parametrize("case", CASES)
+@pytest.mark.parametrize("kind", KINDS)
+def test_frac_penalised_counts_the_masks(case, kind):
+    w, c = _world(case), _cond(case)
+    p, frac = target_baseline(w, c, kind, with_frac=True)
+    _, floor_ok, veto_ok = psi_baseline(w, kind)
+    assert np.allclose(p, target_baseline(w, c, kind))
+    assert frac == pytest.approx(1.0 - np.mean(floor_ok & veto_ok))
+    assert 0.0 <= frac <= 1.0
+
+
 def test_idx_subsetting_agrees_with_full_evaluation():
     w = _world("C")
     idx = np.array([3, 17, 42, 60])

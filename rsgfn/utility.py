@@ -295,15 +295,16 @@ def run_utility(case: str, cfg: WorldConfig, world_seeds,
                             beta_t, w_g,
                             with_ball(tied_risk(case, bp, 0.5))))))
         for bl in baselines:
-            targets.append(
-                ("baseline_" + bl,
-                 ({"lo_q": desirability_lo, "hi_q": desirability_hi,
-                   "shape": desirability_shape}
-                  if bl == "desirability" else {}),
-                 target_baseline(world, base, bl,
-                                 lo_q=desirability_lo,
-                                 hi_q=desirability_hi,
-                                 shape=desirability_shape)))
+            p_bl, frac_bl = target_baseline(world, base, bl,
+                                            lo_q=desirability_lo,
+                                            hi_q=desirability_hi,
+                                            shape=desirability_shape,
+                                            with_frac=True)
+            info_bl = {"frac_penalised": frac_bl}
+            if bl == "desirability":
+                info_bl.update(lo_q=desirability_lo, hi_q=desirability_hi,
+                               shape=desirability_shape)
+            targets.append(("baseline_" + bl, info_bl, p_bl))
         for b in (() if skip_grid else beta_grid):
             if b < world.beta_min:
                 n_skipped += len(rho_grid)
